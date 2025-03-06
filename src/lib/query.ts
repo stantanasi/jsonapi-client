@@ -1,7 +1,16 @@
-import { TResource } from "./resource";
+import { JsonApiBody, JsonApiResource } from "../types/jsonapi.type";
+import { Resource, TResource } from "./resource";
 import Schema from "./schema";
 
+export type FilterQuery<DocType> = {
+  [P in keyof DocType]?: DocType[P];
+} & {
+  [key: string]: any;
+}
+
 interface QueryOptions<DocType> {
+  op?: 'find';
+  filter?: FilterQuery<DocType>;
 }
 
 
@@ -16,6 +25,10 @@ class Query<ResultType, DocType> {
   exec!: () => Promise<ResultType>;
 
   finally!: Promise<ResultType>['finally'];
+
+  find!: (
+    filter?: FilterQuery<DocType>,
+  ) => Query<Resource<DocType>[], DocType>;
 
   getOptions!: () => QueryOptions<DocType>;
 
@@ -48,11 +61,34 @@ Query.prototype.exec = async function exec() {
 
   const options = this.getOptions();
 
+  if (options.op === 'find') {
+    return client.client.get<
+      JsonApiBody<JsonApiResource[]>
+    >(
+      `/${this.model.type}`,
+      {
+        params: {
+          filter: options.filter,
+        },
+      }
+    )
+      .then((response) => this.model.fromJsonApi(response.data));
+
+  }
+
   return;
 };
 
 Query.prototype.finally = function (onFinally) {
   return this.exec().finally(onFinally);
+};
+
+Query.prototype.find = function (filter) {
+  this.setOptions({
+    op: 'find',
+    filter: filter,
+  });
+  return this;
 };
 
 Query.prototype.getOptions = function () {

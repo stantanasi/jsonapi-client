@@ -1,5 +1,6 @@
 import { JsonApiBody, JsonApiResource } from "../types/jsonapi.type";
 import Client, { client } from "./client";
+import Query, { FilterQuery } from "./query";
 import Schema from "./schema";
 
 interface ResourceConstructor<DocType> {
@@ -25,6 +26,10 @@ interface ResourceConstructor<DocType> {
   type: string;
 
   client: Client;
+
+  find(
+    filter?: FilterQuery<DocType>,
+  ): Query<Resource<DocType>[], DocType>;
 
   fromJsonApi<
     DataType extends JsonApiResource | JsonApiResource[] | null = JsonApiResource | JsonApiResource[] | null,
@@ -130,6 +135,11 @@ ResourceFunction.prototype.assign = function (obj) {
   }
 
   return this;
+};
+
+ResourceFunction.find = function (filter) {
+  const query = new Query(this);
+  return query.find(filter);
 };
 
 ResourceFunction.fromJsonApi = function (body) {
