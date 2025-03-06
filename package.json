@@ -18,6 +18,9 @@
   },
   "author": "stantanasi",
   "license": "ISC",
+  "dependencies": {
+    "axios": "^1.8.1"
+  },
   "devDependencies": {
     "@types/node": "^22.5.5",
     "husky": "^9.1.7",
