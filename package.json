@@ -9,7 +9,8 @@
   ],
   "scripts": {
     "build": "tsc",
-    "compile": "tsc --noEmit"
+    "compile": "tsc --noEmit",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
