@@ -1,0 +1,23 @@
+{
+  "name": "@stantanasi/jsonapi-client",
+  "version": "1.0.0",
+  "description": " A JSON:API client built with TypeScript",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stantanasi/jsonapi-client.git"
+  },
+  "author": "stantanasi",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.5.5",
+    "typescript": "^5.6.2"
+  }
+}
