@@ -16,6 +16,7 @@ interface QueryOptions<DocType> {
   fields?: {
     [type: string]: string[];
   };
+  sort?: string[];
 }
 
 
@@ -58,9 +59,13 @@ class Query<ResultType, DocType> {
 
   options!: QueryOptions<DocType>;
 
+  schema!: Schema<DocType>;
+
   setOptions!: (options: QueryOptions<DocType>, overwrite?: boolean) => this;
 
-  schema!: Schema<DocType>;
+  sort!: (
+    fields: string[],
+  ) => this;
 
   then!: Promise<ResultType>['then'];
 }
@@ -91,6 +96,7 @@ Query.prototype.exec = async function exec() {
           filter: options.filter,
           include: options.include?.join(','),
           fields: options.fields,
+          sort: options.sort?.join(','),
         },
       }
     )
@@ -106,6 +112,7 @@ Query.prototype.exec = async function exec() {
           filter: options.filter,
           include: options.include?.join(','),
           fields: options.fields,
+          sort: options.sort?.join(','),
         },
       }
     )
@@ -173,6 +180,13 @@ Query.prototype.setOptions = function (options, overwrite) {
 
   merge(this.options, { ...options });
 
+  return this;
+};
+
+Query.prototype.sort = function (fields) {
+  this.setOptions({
+    sort: fields,
+  });
   return this;
 };
 
