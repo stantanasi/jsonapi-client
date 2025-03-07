@@ -1,3 +1,4 @@
+import { JsonApiBody, JsonApiResource } from "../types/jsonapi.type";
 import Client, { client } from "./client";
 import Schema from "./schema";
 
@@ -24,6 +25,14 @@ interface ResourceConstructor<DocType> {
   type: string;
 
   client: Client;
+
+  fromJsonApi<
+    DataType extends JsonApiResource | JsonApiResource[] | null = JsonApiResource | JsonApiResource[] | null,
+  >(
+    body: JsonApiBody<DataType>,
+  ): DataType extends Array<JsonApiResource>
+    ? Resource<DocType>[]
+    : Resource<DocType> | null;
 
   schema: Schema<DocType>;
 
@@ -121,6 +130,58 @@ ResourceFunction.prototype.assign = function (obj) {
   }
 
   return this;
+};
+
+ResourceFunction.fromJsonApi = function (body) {
+  const schema = this.schema;
+
+  if (Array.isArray(body.data)) {
+    return body.data
+      .map((resource) => this.fromJsonApi({
+        ...body,
+        data: resource,
+      }));
+  } else if (body.data) {
+    const doc = new this();
+
+    if (body.data.id) {
+      doc.id = body.data.id;
+    }
+
+    // Attributes
+    for (const [attribute, value] of Object.entries(body.data.attributes ?? {})) {
+      doc.set(attribute, value);
+    }
+
+    // Relationships
+    for (const [relationship, value] of Object.entries(body.data.relationships ?? {})) {
+      const ref = schema.paths[relationship]?.ref?.();
+      if (!ref) continue;
+
+      if (Array.isArray(value.data)) {
+        const related = value.data.map((identifier) => {
+          return ref.fromJsonApi({
+            ...body,
+            data: body.included!.find((resource) => resource.type === identifier.type && resource.id === identifier.id),
+          });
+        });
+
+        doc.set(relationship, related);
+      } else if (value.data) {
+        const identifier = value.data;
+        const related = ref.fromJsonApi({
+          ...body,
+          data: body.included!.find((resource) => resource.type === identifier.type && resource.id === identifier.id),
+        });
+
+        doc.set(relationship, related);
+      }
+    }
+
+    return doc;
+  } else {
+    return null as any;
+  }
 };
 
 ResourceFunction.prototype.get = function (path, options) {
