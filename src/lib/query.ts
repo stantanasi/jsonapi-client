@@ -17,6 +17,8 @@ interface QueryOptions<DocType> {
     [type: string]: string[];
   };
   sort?: string[];
+  limit?: number;
+  offset?: number;
 }
 
 
@@ -55,7 +57,15 @@ class Query<ResultType, DocType> {
 
   init!: (model: TResource<DocType>) => void;
 
+  limit!: (
+    limit: number,
+  ) => this;
+
   model!: TResource<DocType>;
+
+  offset!: (
+    offset: number,
+  ) => this;
 
   options!: QueryOptions<DocType>;
 
@@ -97,6 +107,10 @@ Query.prototype.exec = async function exec() {
           include: options.include?.join(','),
           fields: options.fields,
           sort: options.sort?.join(','),
+          page: {
+            limit: options.limit,
+            offset: options.offset,
+          },
         },
       }
     )
@@ -113,6 +127,10 @@ Query.prototype.exec = async function exec() {
           include: options.include?.join(','),
           fields: options.fields,
           sort: options.sort?.join(','),
+          page: {
+            limit: options.limit,
+            offset: options.offset,
+          },
         },
       }
     )
@@ -180,6 +198,20 @@ Query.prototype.setOptions = function (options, overwrite) {
 
   merge(this.options, { ...options });
 
+  return this;
+};
+
+Query.prototype.limit = function (limit) {
+  this.setOptions({
+    limit: limit,
+  });
+  return this;
+};
+
+Query.prototype.offset = function (offset) {
+  this.setOptions({
+    offset: offset,
+  });
   return this;
 };
 
