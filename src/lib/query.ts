@@ -13,6 +13,9 @@ interface QueryOptions<DocType> {
   id?: string;
   filter?: FilterQuery<DocType>;
   include?: string[];
+  fields?: {
+    [type: string]: string[];
+  };
 }
 
 
@@ -25,6 +28,12 @@ class Query<ResultType, DocType> {
   catch!: Promise<ResultType>['catch'];
 
   exec!: () => Promise<ResultType>;
+
+  fields!: (
+    fields: {
+      [type: string]: string[];
+    },
+  ) => this;
 
   finally!: Promise<ResultType>['finally'];
 
@@ -81,6 +90,7 @@ Query.prototype.exec = async function exec() {
         params: {
           filter: options.filter,
           include: options.include?.join(','),
+          fields: options.fields,
         },
       }
     )
@@ -95,6 +105,7 @@ Query.prototype.exec = async function exec() {
         params: {
           filter: options.filter,
           include: options.include?.join(','),
+          fields: options.fields,
         },
       }
     )
@@ -103,6 +114,13 @@ Query.prototype.exec = async function exec() {
 
   return;
 };
+
+Query.prototype.fields = function (fields) {
+  this.setOptions({
+    fields: fields,
+  });
+  return this;
+}
 
 Query.prototype.finally = function (onFinally) {
   return this.exec().finally(onFinally);
