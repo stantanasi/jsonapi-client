@@ -31,6 +31,11 @@ interface ResourceConstructor<DocType> {
     filter?: FilterQuery<DocType>,
   ): Query<Resource<DocType>[], DocType>;
 
+  findById(
+    id: string,
+    filter?: FilterQuery<DocType>,
+  ): Query<Resource<DocType> | null, DocType>;
+
   fromJsonApi<
     DataType extends JsonApiResource | JsonApiResource[] | null = JsonApiResource | JsonApiResource[] | null,
   >(
@@ -140,6 +145,11 @@ ResourceFunction.prototype.assign = function (obj) {
 ResourceFunction.find = function (filter) {
   const query = new Query(this);
   return query.find(filter);
+};
+
+ResourceFunction.findById = function (id, filter) {
+  const query = new Query(this);
+  return query.findById(id, filter);
 };
 
 ResourceFunction.fromJsonApi = function (body) {

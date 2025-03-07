@@ -9,7 +9,8 @@ export type FilterQuery<DocType> = {
 }
 
 interface QueryOptions<DocType> {
-  op?: 'find';
+  op?: 'find' | 'findById';
+  id?: string;
   filter?: FilterQuery<DocType>;
 }
 
@@ -29,6 +30,11 @@ class Query<ResultType, DocType> {
   find!: (
     filter?: FilterQuery<DocType>,
   ) => Query<Resource<DocType>[], DocType>;
+
+  findById!: (
+    id: string,
+    filter?: FilterQuery<DocType>,
+  ) => Query<Resource<DocType>, DocType>;
 
   getOptions!: () => QueryOptions<DocType>;
 
@@ -74,6 +80,18 @@ Query.prototype.exec = async function exec() {
     )
       .then((response) => this.model.fromJsonApi(response.data));
 
+  } else if (options.op === 'findById') {
+    return client.client.get<
+      JsonApiBody<JsonApiResource | null>
+    >(
+      `/${this.model.type}/${options.id}`,
+      {
+        params: {
+          filter: options.filter,
+        },
+      }
+    )
+      .then((response) => this.model.fromJsonApi(response.data));
   }
 
   return;
@@ -86,6 +104,15 @@ Query.prototype.finally = function (onFinally) {
 Query.prototype.find = function (filter) {
   this.setOptions({
     op: 'find',
+    filter: filter,
+  });
+  return this;
+};
+
+Query.prototype.findById = function (id, filter) {
+  this.setOptions({
+    op: 'findById',
+    id: id,
     filter: filter,
   });
   return this;
