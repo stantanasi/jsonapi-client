@@ -12,6 +12,7 @@ interface QueryOptions<DocType> {
   op?: 'find' | 'findById';
   id?: string;
   filter?: FilterQuery<DocType>;
+  include?: string[];
 }
 
 
@@ -37,6 +38,10 @@ class Query<ResultType, DocType> {
   ) => Query<Resource<DocType>, DocType>;
 
   getOptions!: () => QueryOptions<DocType>;
+
+  include!: (
+    fields: string[],
+  ) => this;
 
   init!: (model: TResource<DocType>) => void;
 
@@ -75,6 +80,7 @@ Query.prototype.exec = async function exec() {
       {
         params: {
           filter: options.filter,
+          include: options.include?.join(','),
         },
       }
     )
@@ -88,6 +94,7 @@ Query.prototype.exec = async function exec() {
       {
         params: {
           filter: options.filter,
+          include: options.include?.join(','),
         },
       }
     )
@@ -120,6 +127,13 @@ Query.prototype.findById = function (id, filter) {
 
 Query.prototype.getOptions = function () {
   return this.options;
+};
+
+Query.prototype.include = function (fields) {
+  this.setOptions({
+    include: fields,
+  });
+  return this;
 };
 
 Query.prototype.setOptions = function (options, overwrite) {
