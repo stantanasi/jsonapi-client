@@ -1,3 +1,5 @@
+import { TResource } from "./resource";
+
 type SchemaDefinitionProperty<T> = {
   /** The default value for this property. */
   default?: T | (() => T);
@@ -7,6 +9,8 @@ type SchemaDefinitionProperty<T> = {
 
   /** defines a custom setter for this property. */
   set?: (value: any) => any;
+
+  ref?: () => TResource<any>;
 }
 
 type SchemaDefinition<DocType> = {
