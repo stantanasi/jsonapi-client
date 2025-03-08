@@ -3,156 +3,114 @@ import Client, { client } from "./client";
 import Query, { FilterQuery } from "./query";
 import Schema from "./schema";
 
-interface ModelConstructor<DocType> {
+function ModelFunction<DocType>() {
+  class ModelFunction {
 
-  (
-    this: ModelInstance<DocType>,
-    obj?: Partial<DocType>,
-    options?: {
-      isNew?: boolean,
-      isDraft?: boolean,
-    },
-  ): Model<DocType>;
-  new(
-    obj?: Partial<DocType>,
-    options?: {
-      isNew?: boolean,
-      isDraft?: boolean,
-    },
-  ): Model<DocType>;
+    /** The JSON:API resource type. */
+    static type: string;
 
+    static client: Client;
 
-  /** The JSON:API resource type. */
-  type: string;
+    static schema: Schema<DocType>;
 
-  client: Client;
+    static find: (
+      filter?: FilterQuery<DocType>,
+    ) => Query<ModelInstance<DocType>[], DocType>;
 
-  find(
-    filter?: FilterQuery<DocType>,
-  ): Query<Model<DocType>[], DocType>;
+    static findById: (
+      id: string,
+      filter?: FilterQuery<DocType>,
+    ) => Query<ModelInstance<DocType> | null, DocType>;
 
-  findById(
-    id: string,
-    filter?: FilterQuery<DocType>,
-  ): Query<Model<DocType> | null, DocType>;
-
-  fromJsonApi<
-    DataType extends JsonApiResource | JsonApiResource[] | null = JsonApiResource | JsonApiResource[] | null,
-  >(
-    body: JsonApiBody<DataType>,
-  ): DataType extends Array<JsonApiResource>
-    ? Model<DocType>[]
-    : Model<DocType> | null;
-
-  schema: Schema<DocType>;
-
-  prototype: ModelInstance<DocType>;
-}
-
-class ModelInstance<DocType> {
-
-  /** The JSON:API resource id. */
-  id!: string;
-
-  _doc!: DocType;
-  _modifiedPath!: (keyof DocType)[];
-
-  assign!: (obj: Partial<DocType>) => this;
-
-  get!: <T extends keyof DocType>(
-    path: T,
-    options?: {
-      getter?: boolean,
-    },
-  ) => DocType[T];
-
-  isModified!: <T extends keyof DocType>(path?: T) => boolean;
-
-  isNew!: boolean;
-
-  markModified!: <T extends keyof DocType>(path: T) => void;
-
-  model!: () => TModel<DocType>;
-
-  schema!: Schema<DocType>;
-
-  set!: <P extends keyof DocType>(
-    path: P,
-    val: DocType[P],
-    options?: {
-      setter?: boolean,
-      skipMarkModified?: boolean,
-    },
-  ) => this;
-
-  toJSON!: () => DocType;
-
-  toObject!: () => DocType;
-
-  unmarkModified!: <T extends keyof DocType>(path: T) => void;
-}
-
-export type TModel<DocType> = ModelConstructor<DocType>
-
-export type Model<DocType> = DocType & ModelInstance<DocType>
+    static fromJsonApi: <
+      DataType extends JsonApiResource | JsonApiResource[] | null = JsonApiResource | JsonApiResource[] | null,
+    > (
+      body: JsonApiBody<DataType>,
+    ) => DataType extends Array<JsonApiResource>
+      ? ModelInstance<DocType>[]
+      : ModelInstance<DocType> | null;
 
 
-const ModelFunction: TModel<Record<string, any>> = function (obj, options) {
-  this._doc = {}
-  this._modifiedPath = []
+    /** The JSON:API resource type. */
+    type!: string;
 
-  this.isNew = options?.isNew ?? true
+    /** The JSON:API resource id. */
+    id!: string;
 
-  const schema = this.schema
+    _doc!: DocType;
 
-  for (const [path, options] of Object.entries(schema.paths)) {
-    Object.defineProperty(this, path, {
-      enumerable: true,
-      configurable: true,
-      get: () => {
-        return this.get(path)
+    _modifiedPath!: (keyof DocType)[];
+
+    constructor(
+      obj?: Partial<DocType>,
+      options?: {
+        isNew?: boolean;
+        isDraft?: boolean;
       },
-      set: (value) => {
-        this.set(path, value)
-      }
-    });
-
-    if (options?.default !== undefined) {
-      const defaultValue = typeof options.default === 'function'
-        ? options.default()
-        : options.default
-      this.set(path, defaultValue, { skipMarkModified: true });
+    ) {
+      this.init(obj, options)
     }
+
+    assign!: (obj: Partial<DocType>) => this;
+
+    get!: <T extends keyof DocType>(
+      path: T,
+      options?: {
+        getter?: boolean,
+      },
+    ) => DocType[T];
+
+    init!: (
+      obj?: Partial<DocType>,
+      options?: {
+        isNew?: boolean;
+        isDraft?: boolean;
+      },
+    ) => void;
+
+    isModified!: <T extends keyof DocType>(path?: T) => boolean;
+
+    isNew!: boolean;
+
+    markModified!: <T extends keyof DocType>(path: T) => void;
+
+    model!: () => ModelConstructor<DocType>;
+
+    schema!: Schema<DocType>;
+
+    set!: <P extends keyof DocType>(
+      path: P,
+      val: DocType[P],
+      options?: {
+        setter?: boolean,
+        skipMarkModified?: boolean,
+      },
+    ) => this;
+
+    toJSON!: () => DocType;
+
+    toObject!: () => DocType;
+
+    unmarkModified!: <T extends keyof DocType>(path: T) => void;
   }
 
-  if (obj) {
-    for (const [key, value] of Object.entries(obj)) {
-      this.set(key, value, { skipMarkModified: true });
-    }
-  }
-} as TModel<Record<string, any>>;
+  return ModelFunction
+}
 
-ModelFunction.prototype.assign = function (obj) {
-  for (const [path, value] of Object.entries(obj)) {
-    if (this.get(path) !== value) {
-      this.set(path, value);
-    }
-  }
+class BaseModel extends ModelFunction<Record<string, any>>() { }
 
-  return this;
-};
 
-ModelFunction.find = function (filter) {
+BaseModel.find = function (filter) {
   const query = new Query(this);
   return query.find(filter);
 };
 
-ModelFunction.findById = function (id, filter) {
+BaseModel.findById = function (id, filter) {
   const query = new Query(this);
   return query.findById(id, filter);
 };
 
-ModelFunction.fromJsonApi = function (body) {
+BaseModel.fromJsonApi = function (body) {
   const schema = this.schema;
 
   if (Array.isArray(body.data)) {
@@ -204,7 +162,55 @@ ModelFunction.fromJsonApi = function (body) {
   }
 };
 
-ModelFunction.prototype.get = function (path, options) {
+
+BaseModel.prototype.init = function (obj, options) {
+  this._doc = {}
+  this._modifiedPath = []
+
+  this.isNew = options?.isNew ?? true
+
+  const schema = this.schema
+
+  for (const [path, options] of Object.entries(schema.paths)) {
+    Object.defineProperty(this, path, {
+      enumerable: true,
+      configurable: true,
+      get: () => {
+        return this.get(path)
+      },
+      set: (value) => {
+        this.set(path, value)
+      }
+    });
+
+    if (options?.default !== undefined) {
+      const defaultValue = typeof options.default === 'function'
+        ? options.default()
+        : options.default
+      this.set(path, defaultValue, { skipMarkModified: true });
+    }
+  }
+
+  if (obj) {
+    for (const [key, value] of Object.entries(obj)) {
+      this.set(key, value, { skipMarkModified: true });
+    }
+  }
+};
+
+BaseModel.prototype.assign = function (obj) {
+  for (const [path, value] of Object.entries(obj)) {
+    if (this.get(path) !== value) {
+      this.set(path, value);
+    }
+  }
+
+  return this;
+};
+
+
+
+BaseModel.prototype.get = function (path, options) {
   const schema = this.schema;
 
   let value = this._doc[path];
@@ -220,7 +226,7 @@ ModelFunction.prototype.get = function (path, options) {
   return value;
 };
 
-ModelFunction.prototype.isModified = function (path) {
+BaseModel.prototype.isModified = function (path) {
   if (path) {
     return this._modifiedPath.includes(path);
   }
@@ -228,11 +234,11 @@ ModelFunction.prototype.isModified = function (path) {
   return this._modifiedPath.length > 0;
 };
 
-ModelFunction.prototype.markModified = function (path) {
+BaseModel.prototype.markModified = function (path) {
   this._modifiedPath.push(path);
 };
 
-ModelFunction.prototype.set = function (path, value, options) {
+BaseModel.prototype.set = function (path, value, options) {
   const schema = this.schema;
 
   if (options?.setter !== false) {
@@ -252,11 +258,11 @@ ModelFunction.prototype.set = function (path, value, options) {
   return this;
 };
 
-ModelFunction.prototype.toJSON = function () {
+BaseModel.prototype.toJSON = function () {
   return this.toObject();
 };
 
-ModelFunction.prototype.toObject = function () {
+BaseModel.prototype.toObject = function () {
   const schema = this.schema;
 
   const obj: any = {};
@@ -265,7 +271,7 @@ ModelFunction.prototype.toObject = function () {
     let value = this.get(path);
 
     if (value) {
-      if (value instanceof ModelFunction) {
+      if (value instanceof BaseModel) {
         obj[path] = value.toObject();
       } else if (Array.isArray(value)) {
         obj[path] = [...value];
@@ -282,35 +288,30 @@ ModelFunction.prototype.toObject = function () {
   return obj;
 };
 
-ModelFunction.prototype.unmarkModified = function (path) {
+BaseModel.prototype.unmarkModified = function (path) {
   this._modifiedPath = this._modifiedPath.filter((p) => p !== path);
 };
 
 
-export default ModelFunction
+export type ModelConstructor<DocType> = ReturnType<typeof ModelFunction<DocType>>
+
+export type ModelInstance<DocType> = InstanceType<ModelConstructor<DocType>> & DocType
 
 export function model<DocType>(
   type: string,
   schema: Schema<DocType>,
-): TModel<DocType> {
-  const model: TModel<DocType> = function (this, obj, options) {
-    ModelFunction.call(this as any, obj, options)
-  } as TModel<DocType>;
+): ModelConstructor<DocType> {
+  class ModelClass extends BaseModel { }
 
-  if (!(model.prototype instanceof ModelFunction)) {
-    Object.setPrototypeOf(model, ModelFunction);
-    Object.setPrototypeOf(model.prototype, ModelFunction.prototype);
-  }
+  ModelClass.client = client;
+  ModelClass.type = type;
 
-  model.client = client;
-  model.type = type;
+  ModelClass.schema = schema;
+  ModelClass.prototype.schema = schema;
 
-  model.schema = schema;
-  model.prototype.schema = schema;
-
-  model.prototype.model = function () {
-    return model;
+  ModelClass.prototype.model = function () {
+    return ModelClass;
   };
 
-  return model;
+  return ModelClass as ModelConstructor<DocType>;
 }

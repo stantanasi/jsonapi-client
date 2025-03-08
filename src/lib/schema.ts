@@ -1,4 +1,4 @@
-import { TModel } from "./model";
+import { ModelConstructor } from "./model";
 
 type SchemaDefinitionProperty<T> = {
   /** The default value for this property. */
@@ -10,7 +10,7 @@ type SchemaDefinitionProperty<T> = {
   /** defines a custom setter for this property. */
   set?: (value: any) => any;
 
-  ref?: () => TModel<any>;
+  ref?: () => ModelConstructor<any>;
 }
 
 type SchemaDefinition<DocType> = {

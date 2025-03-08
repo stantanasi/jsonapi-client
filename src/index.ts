@@ -4,8 +4,8 @@ export {
 
 export {
   model,
-  Model,
-  TModel
+  ModelConstructor,
+  ModelInstance
 } from './lib/model'
 
 export {
