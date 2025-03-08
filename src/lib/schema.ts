@@ -1,5 +1,3 @@
-import { ModelConstructor } from "./model";
-
 type SchemaDefinitionProperty<T> = {
   /** The default value for this property. */
   default?: T | (() => T);
@@ -9,8 +7,6 @@ type SchemaDefinitionProperty<T> = {
 
   /** defines a custom setter for this property. */
   set?: (value: any) => any;
-
-  ref?: () => ModelConstructor<any>;
 }
 
 type SchemaDefinition<DocType> = {

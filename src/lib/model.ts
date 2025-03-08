@@ -3,6 +3,11 @@ import Client, { client } from "./client";
 import Query, { FilterQuery } from "./query";
 import Schema from "./schema";
 
+const models: {
+  [type: string]: ModelConstructor<any>,
+} = {};
+
+
 function ModelFunction<DocType>() {
   class ModelFunction {
 
@@ -133,12 +138,11 @@ BaseModel.fromJsonApi = function (body) {
 
     // Relationships
     for (const [relationship, value] of Object.entries(body.data.relationships ?? {})) {
-      const ref = schema.paths[relationship]?.ref?.();
-      if (!ref) continue;
-
       if (Array.isArray(value.data)) {
         const related = value.data.map((identifier) => {
-          return ref.fromJsonApi({
+          const model = models[identifier.type];
+
+          return model.fromJsonApi({
             ...body,
             data: body.included!.find((resource) => resource.type === identifier.type && resource.id === identifier.id),
           });
@@ -147,7 +151,9 @@ BaseModel.fromJsonApi = function (body) {
         doc.set(relationship, related);
       } else if (value.data) {
         const identifier = value.data;
-        const related = ref.fromJsonApi({
+        const model = models[identifier.type];
+
+        const related = model.fromJsonApi({
           ...body,
           data: body.included!.find((resource) => resource.type === identifier.type && resource.id === identifier.id),
         });
