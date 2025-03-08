@@ -1,0 +1,17 @@
+{
+  "name": "@stantanasi/jsonapi-client-example",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node dist/index.js"
+  },
+  "author": "stantanasi",
+  "license": "ISC",
+  "dependencies": {
+    "@stantanasi/jsonapi-client": "file:.."
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2"
+  }
+}
