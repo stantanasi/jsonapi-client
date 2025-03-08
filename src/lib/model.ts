@@ -280,7 +280,13 @@ BaseModel.prototype.toObject = function () {
       if (value instanceof BaseModel) {
         obj[path] = value.toObject();
       } else if (Array.isArray(value)) {
-        obj[path] = [...value];
+        obj[path] = value.map((val) => {
+          if (val instanceof BaseModel) {
+            return val.toObject();
+          } else {
+            return val;
+          }
+        });
       } else if (typeof value === 'object') {
         obj[path] = { ...value };
       } else {
