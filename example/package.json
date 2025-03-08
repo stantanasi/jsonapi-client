@@ -8,6 +8,9 @@
   },
   "author": "stantanasi",
   "license": "ISC",
+  "dependencies": {
+    "@stantanasi/jsonapi-client": "file:.."
+  },
   "devDependencies": {
     "typescript": "^5.8.2"
   }
