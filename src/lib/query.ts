@@ -8,6 +8,10 @@ export type FilterQuery<DocType> = {
   [key: string]: any;
 }
 
+export type SortQuery<DocType> = {
+  [P in keyof DocType]?: -1 | 1 | 'asc' | 'ascending' | 'desc' | 'descending'
+}
+
 interface QueryOptions<DocType> {
   op?: 'find' | 'findById';
   id?: string;
@@ -16,7 +20,7 @@ interface QueryOptions<DocType> {
   fields?: {
     [type: string]: string[];
   };
-  sort?: string[];
+  sort?: SortQuery<DocType>;
   limit?: number;
   offset?: number;
 }
@@ -74,7 +78,7 @@ class Query<ResultType, DocType> {
   setOptions!: (options: QueryOptions<DocType>, overwrite?: boolean) => this;
 
   sort!: (
-    fields: string[],
+    sort: SortQuery<DocType>,
   ) => this;
 
   then!: Promise<ResultType>['then'];
@@ -95,6 +99,25 @@ Query.prototype.exec = async function exec() {
   const client = this.model.client;
 
   const options = this.getOptions();
+  const params = {
+    filter: options.filter,
+    include: options.include?.join(','),
+    fields: options.fields,
+    sort: options.sort
+      ? Object.entries(options.sort)
+        .map(([field, order]) => {
+          if (order === -1 || order === 'desc' || order === 'descending') {
+            return `-${field}`;
+          }
+          return field;
+        })
+        .join(',')
+      : undefined,
+    page: {
+      limit: options.limit,
+      offset: options.offset,
+    },
+  };
 
   if (options.op === 'find') {
     return client.client.get<
@@ -102,16 +125,7 @@ Query.prototype.exec = async function exec() {
     >(
       `/${this.model.type}`,
       {
-        params: {
-          filter: options.filter,
-          include: options.include?.join(','),
-          fields: options.fields,
-          sort: options.sort?.join(','),
-          page: {
-            limit: options.limit,
-            offset: options.offset,
-          },
-        },
+        params: params,
       }
     )
       .then((response) => this.model.fromJsonApi(response.data));
@@ -122,16 +136,7 @@ Query.prototype.exec = async function exec() {
     >(
       `/${this.model.type}/${options.id}`,
       {
-        params: {
-          filter: options.filter,
-          include: options.include?.join(','),
-          fields: options.fields,
-          sort: options.sort?.join(','),
-          page: {
-            limit: options.limit,
-            offset: options.offset,
-          },
-        },
+        params: params,
       }
     )
       .then((response) => this.model.fromJsonApi(response.data));
@@ -215,9 +220,9 @@ Query.prototype.offset = function (offset) {
   return this;
 };
 
-Query.prototype.sort = function (fields) {
+Query.prototype.sort = function (sort) {
   this.setOptions({
-    sort: fields,
+    sort: sort,
   });
   return this;
 };
