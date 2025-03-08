@@ -3,10 +3,10 @@ export {
 } from './lib/client'
 
 export {
-  resource,
-  Resource,
-  TResource
-} from './lib/resource'
+  model,
+  Model,
+  TModel
+} from './lib/model'
 
 export {
   default as Query

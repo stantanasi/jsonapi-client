@@ -3,23 +3,23 @@ import Client, { client } from "./client";
 import Query, { FilterQuery } from "./query";
 import Schema from "./schema";
 
-interface ResourceConstructor<DocType> {
+interface ModelConstructor<DocType> {
 
   (
-    this: ResourceInstance<DocType>,
+    this: ModelInstance<DocType>,
     obj?: Partial<DocType>,
     options?: {
       isNew?: boolean,
       isDraft?: boolean,
     },
-  ): Resource<DocType>;
+  ): Model<DocType>;
   new(
     obj?: Partial<DocType>,
     options?: {
       isNew?: boolean,
       isDraft?: boolean,
     },
-  ): Resource<DocType>;
+  ): Model<DocType>;
 
 
   /** The JSON:API resource type. */
@@ -29,27 +29,27 @@ interface ResourceConstructor<DocType> {
 
   find(
     filter?: FilterQuery<DocType>,
-  ): Query<Resource<DocType>[], DocType>;
+  ): Query<Model<DocType>[], DocType>;
 
   findById(
     id: string,
     filter?: FilterQuery<DocType>,
-  ): Query<Resource<DocType> | null, DocType>;
+  ): Query<Model<DocType> | null, DocType>;
 
   fromJsonApi<
     DataType extends JsonApiResource | JsonApiResource[] | null = JsonApiResource | JsonApiResource[] | null,
   >(
     body: JsonApiBody<DataType>,
   ): DataType extends Array<JsonApiResource>
-    ? Resource<DocType>[]
-    : Resource<DocType> | null;
+    ? Model<DocType>[]
+    : Model<DocType> | null;
 
   schema: Schema<DocType>;
 
-  prototype: ResourceInstance<DocType>;
+  prototype: ModelInstance<DocType>;
 }
 
-class ResourceInstance<DocType> {
+class ModelInstance<DocType> {
 
   /** The JSON:API resource id. */
   id!: string;
@@ -72,7 +72,7 @@ class ResourceInstance<DocType> {
 
   markModified!: <T extends keyof DocType>(path: T) => void;
 
-  resource!: () => TResource<DocType>;
+  model!: () => TModel<DocType>;
 
   schema!: Schema<DocType>;
 
@@ -92,12 +92,12 @@ class ResourceInstance<DocType> {
   unmarkModified!: <T extends keyof DocType>(path: T) => void;
 }
 
-export type TResource<DocType> = ResourceConstructor<DocType>
+export type TModel<DocType> = ModelConstructor<DocType>
 
-export type Resource<DocType> = DocType & ResourceInstance<DocType>
+export type Model<DocType> = DocType & ModelInstance<DocType>
 
 
-const ResourceFunction: TResource<Record<string, any>> = function (obj, options) {
+const ModelFunction: TModel<Record<string, any>> = function (obj, options) {
   this._doc = {}
   this._modifiedPath = []
 
@@ -130,9 +130,9 @@ const ResourceFunction: TResource<Record<string, any>> = function (obj, options)
       this.set(key, value, { skipMarkModified: true });
     }
   }
-} as TResource<Record<string, any>>;
+} as TModel<Record<string, any>>;
 
-ResourceFunction.prototype.assign = function (obj) {
+ModelFunction.prototype.assign = function (obj) {
   for (const [path, value] of Object.entries(obj)) {
     if (this.get(path) !== value) {
       this.set(path, value);
@@ -142,17 +142,17 @@ ResourceFunction.prototype.assign = function (obj) {
   return this;
 };
 
-ResourceFunction.find = function (filter) {
+ModelFunction.find = function (filter) {
   const query = new Query(this);
   return query.find(filter);
 };
 
-ResourceFunction.findById = function (id, filter) {
+ModelFunction.findById = function (id, filter) {
   const query = new Query(this);
   return query.findById(id, filter);
 };
 
-ResourceFunction.fromJsonApi = function (body) {
+ModelFunction.fromJsonApi = function (body) {
   const schema = this.schema;
 
   if (Array.isArray(body.data)) {
@@ -204,7 +204,7 @@ ResourceFunction.fromJsonApi = function (body) {
   }
 };
 
-ResourceFunction.prototype.get = function (path, options) {
+ModelFunction.prototype.get = function (path, options) {
   const schema = this.schema;
 
   let value = this._doc[path];
@@ -220,7 +220,7 @@ ResourceFunction.prototype.get = function (path, options) {
   return value;
 };
 
-ResourceFunction.prototype.isModified = function (path) {
+ModelFunction.prototype.isModified = function (path) {
   if (path) {
     return this._modifiedPath.includes(path);
   }
@@ -228,11 +228,11 @@ ResourceFunction.prototype.isModified = function (path) {
   return this._modifiedPath.length > 0;
 };
 
-ResourceFunction.prototype.markModified = function (path) {
+ModelFunction.prototype.markModified = function (path) {
   this._modifiedPath.push(path);
 };
 
-ResourceFunction.prototype.set = function (path, value, options) {
+ModelFunction.prototype.set = function (path, value, options) {
   const schema = this.schema;
 
   if (options?.setter !== false) {
@@ -252,11 +252,11 @@ ResourceFunction.prototype.set = function (path, value, options) {
   return this;
 };
 
-ResourceFunction.prototype.toJSON = function () {
+ModelFunction.prototype.toJSON = function () {
   return this.toObject();
 };
 
-ResourceFunction.prototype.toObject = function () {
+ModelFunction.prototype.toObject = function () {
   const schema = this.schema;
 
   const obj: any = {};
@@ -265,7 +265,7 @@ ResourceFunction.prototype.toObject = function () {
     let value = this.get(path);
 
     if (value) {
-      if (value instanceof ResourceFunction) {
+      if (value instanceof ModelFunction) {
         obj[path] = value.toObject();
       } else if (Array.isArray(value)) {
         obj[path] = [...value];
@@ -282,35 +282,35 @@ ResourceFunction.prototype.toObject = function () {
   return obj;
 };
 
-ResourceFunction.prototype.unmarkModified = function (path) {
+ModelFunction.prototype.unmarkModified = function (path) {
   this._modifiedPath = this._modifiedPath.filter((p) => p !== path);
 };
 
 
-export default ResourceFunction
+export default ModelFunction
 
-export function resource<DocType>(
+export function model<DocType>(
   type: string,
   schema: Schema<DocType>,
-): TResource<DocType> {
-  const resource: TResource<DocType> = function (this, obj, options) {
-    ResourceFunction.call(this as any, obj, options)
-  } as TResource<DocType>;
+): TModel<DocType> {
+  const model: TModel<DocType> = function (this, obj, options) {
+    ModelFunction.call(this as any, obj, options)
+  } as TModel<DocType>;
 
-  if (!(resource.prototype instanceof ResourceFunction)) {
-    Object.setPrototypeOf(resource, ResourceFunction);
-    Object.setPrototypeOf(resource.prototype, ResourceFunction.prototype);
+  if (!(model.prototype instanceof ModelFunction)) {
+    Object.setPrototypeOf(model, ModelFunction);
+    Object.setPrototypeOf(model.prototype, ModelFunction.prototype);
   }
 
-  resource.client = client;
-  resource.type = type;
+  model.client = client;
+  model.type = type;
 
-  resource.schema = schema;
-  resource.prototype.schema = schema;
+  model.schema = schema;
+  model.prototype.schema = schema;
 
-  resource.prototype.resource = function () {
-    return resource;
+  model.prototype.model = function () {
+    return model;
   };
 
-  return resource;
+  return model;
 }

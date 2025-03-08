@@ -1,5 +1,5 @@
 import { JsonApiBody, JsonApiResource } from "../types/jsonapi.type";
-import { Resource, TResource } from "./resource";
+import { Model, TModel } from "./model";
 import Schema from "./schema";
 
 export type FilterQuery<DocType> = {
@@ -24,7 +24,7 @@ interface QueryOptions<DocType> {
 
 class Query<ResultType, DocType> {
 
-  constructor(model: TResource<DocType>) {
+  constructor(model: TModel<DocType>) {
     this.init(model);
   }
 
@@ -42,12 +42,12 @@ class Query<ResultType, DocType> {
 
   find!: (
     filter?: FilterQuery<DocType>,
-  ) => Query<Resource<DocType>[], DocType>;
+  ) => Query<Model<DocType>[], DocType>;
 
   findById!: (
     id: string,
     filter?: FilterQuery<DocType>,
-  ) => Query<Resource<DocType>, DocType>;
+  ) => Query<Model<DocType>, DocType>;
 
   getOptions!: () => QueryOptions<DocType>;
 
@@ -55,13 +55,13 @@ class Query<ResultType, DocType> {
     fields: string[],
   ) => this;
 
-  init!: (model: TResource<DocType>) => void;
+  init!: (model: TModel<DocType>) => void;
 
   limit!: (
     limit: number,
   ) => this;
 
-  model!: TResource<DocType>;
+  model!: TModel<DocType>;
 
   offset!: (
     offset: number,
