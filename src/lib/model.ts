@@ -177,7 +177,7 @@ BaseModel.prototype.init = function (obj, options) {
 
   const schema = this.schema
 
-  for (const [path, options] of Object.entries(schema.paths)) {
+  for (const [path, options] of Object.entries(schema.attributes).concat(Object.entries(schema.relationships))) {
     Object.defineProperty(this, path, {
       enumerable: true,
       configurable: true,
@@ -222,9 +222,10 @@ BaseModel.prototype.get = function (path, options) {
   let value = this._doc[path];
 
   if (options?.getter !== false) {
-    const getter = schema.paths[path]?.get;
+    const property = schema.attributes[path] ?? schema.relationships[path];
+    const getter = property?.get;
 
-    if (getter) {
+    if (property && getter) {
       value = getter(value);
     }
   }
@@ -248,9 +249,10 @@ BaseModel.prototype.set = function (path, value, options) {
   const schema = this.schema;
 
   if (options?.setter !== false) {
-    const setter = schema.paths[path]?.set;
+    const property = schema.attributes[path] ?? schema.relationships[path];
+    const setter = property?.set;
 
-    if (setter) {
+    if (property && setter) {
       value = setter(value);
     }
   }
@@ -273,7 +275,7 @@ BaseModel.prototype.toObject = function () {
 
   const obj: any = {};
 
-  for (const [path, options] of Object.entries(schema.paths)) {
+  for (const [path, options] of Object.entries(schema.attributes).concat(Object.entries(schema.relationships))) {
     let value = this.get(path);
 
     if (value) {
