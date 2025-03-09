@@ -94,6 +94,8 @@ function ModelFunction<DocType>() {
 
     toJSON!: () => DocType;
 
+    toJsonApi!: () => JsonApiBody<JsonApiResource>;
+
     toObject!: () => DocType;
 
     unmarkModified!: <T extends keyof DocType>(path: T) => void;
@@ -268,6 +270,62 @@ BaseModel.prototype.set = function (path, value, options) {
 
 BaseModel.prototype.toJSON = function () {
   return this.toObject();
+};
+
+BaseModel.prototype.toJsonApi = function () {
+  const body: JsonApiBody<JsonApiResource> = {
+    jsonapi: {
+      version: '1.0',
+    },
+  };
+
+  const type = this.type;
+  const id = this.id;
+
+  const data: JsonApiResource = {
+    type: type,
+    id: id,
+    attributes: {},
+    relationships: {},
+  };
+
+  for (const [attribute, options] of Object.entries(this.schema.attributes)) {
+    if (!this.isModified(attribute)) continue;
+
+    const value = this.get(attribute);
+
+    data.attributes![attribute] = value;
+  }
+
+  for (const [relationship, options] of Object.entries(this.schema.relationships)) {
+    if (!this.isModified(relationship)) continue;
+
+    const value = this.get(relationship) as BaseModel | BaseModel[] | null;
+
+    if (Array.isArray(value)) {
+      data.relationships![relationship] = {
+        data: value.map((val) => ({
+          type: val.type,
+          id: val.id,
+        })),
+      };
+    } else if (value) {
+      data.relationships![relationship] = {
+        data: {
+          type: value.type,
+          id: value.id,
+        }
+      };
+    } else {
+      data.relationships![relationship] = {
+        data: null,
+      };
+    }
+  }
+
+  body.data = data;
+
+  return body;
 };
 
 BaseModel.prototype.toObject = function () {
