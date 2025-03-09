@@ -50,7 +50,6 @@ function ModelFunction<DocType>() {
       obj?: Partial<DocType>,
       options?: {
         isNew?: boolean;
-        isDraft?: boolean;
       },
     ) {
       this.init(obj, options)
@@ -69,7 +68,6 @@ function ModelFunction<DocType>() {
       obj?: Partial<DocType>,
       options?: {
         isNew?: boolean;
-        isDraft?: boolean;
       },
     ) => void;
 
@@ -394,7 +392,9 @@ export function model<DocType>(
   class ModelClass extends BaseModel { }
 
   ModelClass.client = client;
+
   ModelClass.type = type;
+  ModelClass.prototype.type = type;
 
   ModelClass.schema = schema;
   ModelClass.prototype.schema = schema;
