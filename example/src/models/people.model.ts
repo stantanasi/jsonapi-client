@@ -36,5 +36,4 @@ export const PeopleSchema = new Schema<IPeople>({
 });
 
 
-class People extends model<IPeople>('people', PeopleSchema) { }
-export default People
+export default class People extends model<IPeople>('people', PeopleSchema) { }

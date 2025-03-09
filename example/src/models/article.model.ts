@@ -30,5 +30,4 @@ export const ArticleSchema = new Schema<IArticle>({
 });
 
 
-class Article extends model('articles', ArticleSchema) { }
-export default Article
+export default class Article extends model('articles', ArticleSchema) { }
