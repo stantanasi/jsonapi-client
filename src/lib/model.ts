@@ -81,6 +81,8 @@ function ModelFunction<DocType>() {
 
     model!: () => ModelConstructor<DocType>;
 
+    save!: () => Promise<this>;
+
     schema!: Schema<DocType>;
 
     set!: <P extends keyof DocType>(
@@ -246,6 +248,22 @@ BaseModel.prototype.isModified = function (path) {
 BaseModel.prototype.markModified = function (path) {
   this._modifiedPath.push(path);
 };
+
+BaseModel.prototype.save = async function () {
+  if (this.isNew) {
+    const response = await client.client.post<JsonApiBody<JsonApiResource>>(
+      `/${this.type}`,
+      this.toJsonApi(),
+    );
+  } else {
+    const response = await client.client.patch<JsonApiBody<JsonApiResource>>(
+      `/${this.type}/${this.id}`,
+      this.toJsonApi(),
+    );
+  }
+
+  return this;
+}
 
 BaseModel.prototype.set = function (path, value, options) {
   const schema = this.schema;
