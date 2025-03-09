@@ -10,6 +10,10 @@ export type FilterQuery<DocType> = {
 
 export type IncludeQuery<DocType> = (keyof DocType | (string & {}))[];
 
+export type FieldsQuery = {
+  [type: string]: string[];
+};
+
 export type SortQuery<DocType> = {
   [P in keyof DocType]?: -1 | 1 | 'asc' | 'ascending' | 'desc' | 'descending'
 }
@@ -19,9 +23,7 @@ interface QueryOptions<DocType> {
   id?: string;
   filter?: FilterQuery<DocType>;
   include?: IncludeQuery<DocType>;
-  fields?: {
-    [type: string]: string[];
-  };
+  fields?: FieldsQuery;
   sort?: SortQuery<DocType>;
   limit?: number;
   offset?: number;
@@ -39,9 +41,7 @@ class Query<ResultType, DocType> {
   exec!: () => Promise<ResultType>;
 
   fields!: (
-    fields: {
-      [type: string]: string[];
-    },
+    fields: FieldsQuery,
   ) => this;
 
   finally!: Promise<ResultType>['finally'];
