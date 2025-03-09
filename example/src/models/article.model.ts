@@ -6,21 +6,27 @@ export interface IArticle {
   id: string;
 
   title: string;
+  createdAt: Date;
+  updatedAt: Date;
 
   author: People;
   comments: Comment[];
-
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export const ArticleSchema = new Schema<IArticle>({
-  title: {},
+  attributes: {
+    title: {},
 
+    createdAt: {},
 
-  author: {},
+    updatedAt: {},
+  },
 
-  comments: {},
+  relationships: {
+    author: {},
+
+    comments: {},
+  },
 });
 
 

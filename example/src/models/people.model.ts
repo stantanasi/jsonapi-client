@@ -8,25 +8,31 @@ export interface IPeople {
   'first-name': string;
   'last-name': string;
   twitter: string | null;
+  createdAt: Date;
+  updatedAt: Date;
 
   articles: Article[];
   comments: Comment[];
-
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export const PeopleSchema = new Schema<IPeople>({
-  'first-name': {},
+  attributes: {
+    'first-name': {},
 
-  'last-name': {},
+    'last-name': {},
 
-  twitter: {},
+    twitter: {},
 
+    createdAt: {},
 
-  articles: {},
+    updatedAt: {},
+  },
 
-  comments: {},
+  relationships: {
+    articles: {},
+
+    comments: {},
+  },
 });
 
 

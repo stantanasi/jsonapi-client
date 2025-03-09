@@ -6,21 +6,27 @@ export interface IComment {
   id: string;
 
   body: string;
+  createdAt: Date;
+  updatedAt: Date;
 
   article: Article;
   author: People;
-
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export const CommentSchema = new Schema<IComment>({
-  body: {},
+  attributes: {
+    body: {},
 
+    createdAt: {},
 
-  article: {},
+    updatedAt: {},
+  },
 
-  author: {},
+  relationships: {
+    article: {},
+
+    author: {},
+  },
 });
 
 
