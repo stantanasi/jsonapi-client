@@ -8,6 +8,8 @@ export type FilterQuery<DocType> = {
   [key: string]: any;
 }
 
+export type IncludeQuery<DocType> = (keyof DocType | (string & {}))[];
+
 export type SortQuery<DocType> = {
   [P in keyof DocType]?: -1 | 1 | 'asc' | 'ascending' | 'desc' | 'descending'
 }
@@ -16,7 +18,7 @@ interface QueryOptions<DocType> {
   op?: 'find' | 'findById';
   id?: string;
   filter?: FilterQuery<DocType>;
-  include?: string[];
+  include?: IncludeQuery<DocType>;
   fields?: {
     [type: string]: string[];
   };
@@ -56,7 +58,7 @@ class Query<ResultType, DocType> {
   getOptions!: () => QueryOptions<DocType>;
 
   include!: (
-    fields: string[],
+    include: IncludeQuery<DocType>,
   ) => this;
 
   init!: (model: ModelConstructor<DocType>) => void;
@@ -120,26 +122,24 @@ Query.prototype.exec = async function exec() {
   };
 
   if (options.op === 'find') {
-    return client.client.get<
-      JsonApiBody<JsonApiResource[]>
-    >(
+    const response = await client.client.get<JsonApiBody<JsonApiResource[]>>(
       `/${this.model.type}`,
       {
         params: params,
       }
-    )
-      .then((response) => this.model.fromJsonApi(response.data));
+    );
+
+    return this.model.fromJsonApi(response.data)
 
   } else if (options.op === 'findById') {
-    return client.client.get<
-      JsonApiBody<JsonApiResource | null>
-    >(
+    const response = await client.client.get<JsonApiBody<JsonApiResource | null>>(
       `/${this.model.type}/${options.id}`,
       {
         params: params,
       }
-    )
-      .then((response) => this.model.fromJsonApi(response.data));
+    );
+
+    return this.model.fromJsonApi(response.data)
   }
 
   return;
@@ -177,9 +177,9 @@ Query.prototype.getOptions = function () {
   return this.options;
 };
 
-Query.prototype.include = function (fields) {
+Query.prototype.include = function (include) {
   this.setOptions({
-    include: fields,
+    include: include,
   });
   return this;
 };
