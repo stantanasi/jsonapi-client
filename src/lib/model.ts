@@ -8,103 +8,113 @@ const models: {
 } = {};
 
 
-function ModelFunction<DocType>() {
-  class ModelFunction {
+export type ModelConstructor<DocType> = {
 
-    /** The JSON:API resource type. */
-    static type: string;
-
-    static client: Client;
-
-    static schema: Schema<DocType>;
-
-    static find: (
-      filter?: FilterQuery<DocType>,
-    ) => Query<ModelInstance<DocType>[], DocType>;
-
-    static findById: (
-      id: string,
-      filter?: FilterQuery<DocType>,
-    ) => Query<ModelInstance<DocType> | null, DocType>;
-
-    static fromJsonApi: <
-      DataType extends JsonApiResource | JsonApiResource[] | null = JsonApiResource | JsonApiResource[] | null,
-    > (
-      body: JsonApiBody<DataType>,
-    ) => DataType extends Array<JsonApiResource>
-      ? ModelInstance<DocType>[]
-      : ModelInstance<DocType> | null;
-
-
-    /** The JSON:API resource type. */
-    type!: string;
-
-    /** The JSON:API resource id. */
-    id!: string;
-
-    _doc!: DocType;
-
-    _modifiedPath!: (keyof DocType)[];
-
-    constructor(
-      obj?: Partial<DocType>,
-      options?: {
-        isNew?: boolean;
-      },
-    ) {
-      this.init(obj, options)
+  new(
+    obj?: Partial<DocType>,
+    options?: {
+      isNew?: boolean;
     }
+  ): ModelInstance<DocType>;
 
-    assign!: (obj: Partial<DocType>) => this;
+  /** The JSON:API resource type. */
+  type: string;
 
-    get!: <T extends keyof DocType>(
-      path: T,
-      options?: {
-        getter?: boolean,
-      },
-    ) => DocType[T];
+  client: Client;
 
-    init!: (
-      obj?: Partial<DocType>,
-      options?: {
-        isNew?: boolean;
-      },
-    ) => void;
+  schema: Schema<DocType>;
 
-    isModified!: <T extends keyof DocType>(path?: T) => boolean;
+  find: (
+    filter?: FilterQuery<DocType>,
+  ) => Query<ModelInstance<DocType>[], DocType>;
 
-    isNew!: boolean;
+  findById: (
+    id: string,
+    filter?: FilterQuery<DocType>,
+  ) => Query<ModelInstance<DocType> | null, DocType>;
 
-    markModified!: <T extends keyof DocType>(path: T) => void;
+  fromJsonApi: <
+    DataType extends JsonApiResource | JsonApiResource[] | null = JsonApiResource | JsonApiResource[] | null,
+  > (
+    body: JsonApiBody<DataType>,
+  ) => DataType extends Array<JsonApiResource>
+    ? ModelInstance<DocType>[]
+    : ModelInstance<DocType> | null;
 
-    model!: () => ModelConstructor<DocType>;
-
-    save!: () => Promise<this>;
-
-    schema!: Schema<DocType>;
-
-    set!: <P extends keyof DocType>(
-      path: P,
-      val: DocType[P],
-      options?: {
-        setter?: boolean,
-        skipMarkModified?: boolean,
-      },
-    ) => this;
-
-    toJSON!: () => DocType;
-
-    toJsonApi!: () => JsonApiBody<JsonApiResource>;
-
-    toObject!: () => DocType;
-
-    unmarkModified!: <T extends keyof DocType>(path: T) => void;
-  }
-
-  return ModelFunction
+  prototype: ModelInstance<DocType>;
 }
 
-class BaseModel extends ModelFunction<Record<string, any>>() { }
+class ModelClass<DocType> {
+
+  /** The JSON:API resource type. */
+  type!: string;
+
+  /** The JSON:API resource id. */
+  id!: string;
+
+  _doc!: DocType;
+
+  _modifiedPath!: (keyof DocType)[];
+
+  constructor(
+    obj?: Partial<DocType>,
+    options?: {
+      isNew?: boolean;
+    },
+  ) {
+    this.init(obj, options);
+  }
+
+  assign!: (obj: Partial<DocType>) => this;
+
+  get!: <T extends keyof DocType>(
+    path: T,
+    options?: {
+      getter?: boolean,
+    },
+  ) => DocType[T];
+
+  init!: (
+    obj?: Partial<DocType>,
+    options?: {
+      isNew?: boolean;
+    },
+  ) => void;
+
+  isModified!: <T extends keyof DocType>(path?: T) => boolean;
+
+  isNew!: boolean;
+
+  markModified!: <T extends keyof DocType>(path: T) => void;
+
+  model!: () => ModelConstructor<DocType>;
+
+  save!: () => Promise<this>;
+
+  schema!: Schema<DocType>;
+
+  set!: <P extends keyof DocType>(
+    path: P,
+    val: DocType[P],
+    options?: {
+      setter?: boolean,
+      skipMarkModified?: boolean,
+    },
+  ) => this;
+
+  toJSON!: () => DocType;
+
+  toJsonApi!: () => JsonApiBody<JsonApiResource>;
+
+  toObject!: () => DocType;
+
+  unmarkModified!: <T extends keyof DocType>(path: T) => void;
+}
+
+export type ModelInstance<DocType> = ModelClass<DocType> & DocType
+
+
+const BaseModel = ModelClass as ModelConstructor<Record<string, any>>;
 
 
 BaseModel.find = function (filter) {
@@ -318,7 +328,7 @@ BaseModel.prototype.toJsonApi = function () {
   for (const [relationship, options] of Object.entries(this.schema.relationships)) {
     if (!this.isModified(relationship)) continue;
 
-    const value = this.get(relationship) as BaseModel | BaseModel[] | null;
+    const value = this.get(relationship) as ModelInstance<any> | ModelInstance<any>[] | null;
 
     if (Array.isArray(value)) {
       data.relationships![relationship] = {
@@ -383,10 +393,6 @@ BaseModel.prototype.unmarkModified = function (path) {
 };
 
 
-export type ModelConstructor<DocType> = ReturnType<typeof ModelFunction<DocType>>
-
-export type ModelInstance<DocType> = InstanceType<ModelConstructor<DocType>> & DocType
-
 export function model<DocType>(
   type: string,
   schema: Schema<DocType>,
@@ -405,5 +411,5 @@ export function model<DocType>(
     return ModelClass;
   };
 
-  return ModelClass as ModelConstructor<DocType>;
+  return ModelClass as any as ModelConstructor<DocType>;
 }
