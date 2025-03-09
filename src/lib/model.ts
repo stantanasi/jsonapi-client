@@ -127,7 +127,9 @@ BaseModel.fromJsonApi = function (body) {
         data: resource,
       }));
   } else if (body.data) {
-    const doc = new this();
+    const doc = new this({}, {
+      isNew: false,
+    });
 
     if (body.data.id) {
       doc.id = body.data.id;
@@ -135,7 +137,7 @@ BaseModel.fromJsonApi = function (body) {
 
     // Attributes
     for (const [attribute, value] of Object.entries(body.data.attributes ?? {})) {
-      doc.set(attribute, value);
+      doc.set(attribute, value, { skipMarkModified: true });
     }
 
     // Relationships
@@ -150,7 +152,7 @@ BaseModel.fromJsonApi = function (body) {
           });
         });
 
-        doc.set(relationship, related);
+        doc.set(relationship, related, { skipMarkModified: true });
       } else if (value.data) {
         const identifier = value.data;
         const model = models[identifier.type];
@@ -160,7 +162,7 @@ BaseModel.fromJsonApi = function (body) {
           data: body.included!.find((resource) => resource.type === identifier.type && resource.id === identifier.id),
         });
 
-        doc.set(relationship, related);
+        doc.set(relationship, related, { skipMarkModified: true });
       }
     }
 
