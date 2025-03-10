@@ -20,6 +20,12 @@ type PropertyDefinition<T> = {
 
   /** defines a custom setter for this property. */
   set?: (value: any) => any;
+
+  /**
+   * Define a transform function for this individual schema type.
+   * Only called when calling `toJSON()` or `toObject()`.
+   */
+  transform?: (val: T) => any;
 }
 
 type SchemaOptions<DocType> = {

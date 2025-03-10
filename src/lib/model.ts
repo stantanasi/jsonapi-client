@@ -364,6 +364,10 @@ BaseModel.prototype.toObject = function () {
   for (const [path, options] of Object.entries(schema.attributes).concat(Object.entries(schema.relationships))) {
     let value = this.get(path);
 
+    if (options?.transform) {
+      value = options.transform(value);
+    }
+
     if (value) {
       if (value instanceof BaseModel) {
         obj[path] = value.toObject();
