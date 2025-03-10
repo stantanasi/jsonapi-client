@@ -7,10 +7,16 @@ class Client {
 const client = new Client();
 
 
-export { client }
+export { client };
 
 export function connect(config: CreateAxiosDefaults) {
-  client.client = axios.create(config);
+  client.client = axios.create({
+    ...config,
+    headers: {
+      ...config.headers,
+      "Content-Type": "application/vnd.api+json",
+    },
+  });
 }
 
 export default Client
