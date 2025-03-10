@@ -260,16 +260,27 @@ BaseModel.prototype.markModified = function (path) {
 };
 
 BaseModel.prototype.save = async function () {
+  let response;
   if (this.isNew) {
-    const response = await client.client.post<JsonApiBody<JsonApiResource>>(
+    response = await client.client.post<JsonApiBody<JsonApiResource>>(
       `/${this.type}`,
       this.toJsonApi(),
     );
   } else {
-    const response = await client.client.patch<JsonApiBody<JsonApiResource>>(
+    response = await client.client.patch<JsonApiBody<JsonApiResource>>(
       `/${this.type}/${this.id}`,
       this.toJsonApi(),
     );
+  }
+
+  const body = response.data;
+  const model = this.model().fromJsonApi(body);
+
+  if (model) {
+    this.assign(model.toObject());
+
+    this.isNew = false;
+    this._modifiedPath = [];
   }
 
   return this;
