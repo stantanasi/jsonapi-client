@@ -129,7 +129,7 @@ Query.prototype.exec = async function exec() {
       }
     );
 
-    return this.model.fromJsonApi(response.data)
+    return this.model.fromJsonApi(response.data);
 
   } else if (options.op === 'findById') {
     const response = await client.client.get<JsonApiBody<JsonApiResource | null>>(
@@ -139,7 +139,7 @@ Query.prototype.exec = async function exec() {
       }
     );
 
-    return this.model.fromJsonApi(response.data)
+    return this.model.fromJsonApi(response.data);
   }
 
   return;

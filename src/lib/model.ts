@@ -186,12 +186,12 @@ BaseModel.fromJsonApi = function (body) {
 
 
 BaseModel.prototype.init = function (obj, options) {
-  this._doc = {}
-  this._modifiedPath = []
+  this._doc = {};
+  this._modifiedPath = [];
 
-  this.isNew = options?.isNew ?? true
+  this.isNew = options?.isNew ?? true;
 
-  const schema = this.schema
+  const schema = this.schema;
 
   for (const [path, options] of Object.entries(schema.attributes).concat(Object.entries(schema.relationships))) {
     Object.defineProperty(this, path, {
@@ -208,7 +208,7 @@ BaseModel.prototype.init = function (obj, options) {
     if (options?.default !== undefined) {
       const defaultValue = typeof options.default === 'function'
         ? options.default()
-        : options.default
+        : options.default;
       this.set(path, defaultValue, { skipMarkModified: true });
     }
   }
@@ -433,5 +433,7 @@ export function model<DocType>(
     return ModelClass;
   };
 
-  return ModelClass as any as ModelConstructor<DocType>;
+  models[type] = ModelClass;
+
+  return ModelClass as ModelConstructor<DocType>;
 }
