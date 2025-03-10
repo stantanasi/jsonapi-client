@@ -67,6 +67,8 @@ class ModelClass<DocType> {
 
   assign!: (obj: Partial<DocType>) => this;
 
+  delete!: () => Promise<void>;
+
   get!: <T extends keyof DocType>(
     path: T,
     options?: {
@@ -228,7 +230,12 @@ BaseModel.prototype.assign = function (obj) {
   return this;
 };
 
-
+BaseModel.prototype.delete = async function () {
+  await client.client.delete(
+    `/${this.type}/${this.id}`,
+    this.toJsonApi(),
+  );
+}
 
 BaseModel.prototype.get = function (path, options) {
   const schema = this.schema;
