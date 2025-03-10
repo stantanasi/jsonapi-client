@@ -31,7 +31,7 @@ export type ModelConstructor<DocType> = {
   findById: (
     id: string,
     filter?: FilterQuery<DocType>,
-  ) => Query<ModelInstance<DocType> | null, DocType>;
+  ) => Query<ModelInstance<DocType>, DocType>;
 
   fromJsonApi: <
     DataType extends JsonApiResource | JsonApiResource[] | null = JsonApiResource | JsonApiResource[] | null,
@@ -44,7 +44,7 @@ export type ModelConstructor<DocType> = {
   prototype: ModelInstance<DocType>;
 }
 
-class ModelClass<DocType> {
+export class ModelClass<DocType> {
 
   /** The JSON:API resource type. */
   type!: string;
@@ -436,4 +436,28 @@ export function model<DocType>(
   models[type] = ModelClass;
 
   return ModelClass as ModelConstructor<DocType>;
+}
+
+export function fromJsonApi<
+  DataType extends JsonApiResource | JsonApiResource[] | null = JsonApiResource | JsonApiResource[] | null,
+>(
+  body: JsonApiBody<DataType>,
+): DataType extends Array<JsonApiResource> ? ModelInstance<any>[] : ModelInstance<any> | null {
+  if (Array.isArray(body.data)) {
+    return body.data
+      .map((resource) => {
+        const model = models[resource.type];
+
+        return model.fromJsonApi({
+          ...body,
+          data: resource,
+        });
+      });
+  } else if (body.data) {
+    const model = models[body.data.type];
+
+    return model.fromJsonApi(body);
+  }
+
+  return null as any;
 }

@@ -1,5 +1,5 @@
 import { JsonApiBody, JsonApiResource } from "../types/jsonapi.type";
-import { ModelConstructor, ModelInstance } from "./model";
+import { fromJsonApi, ModelClass, ModelConstructor, ModelInstance } from "./model";
 import Schema from "./schema";
 
 export type FilterQuery<DocType> = {
@@ -19,8 +19,9 @@ export type SortQuery<DocType> = {
 }
 
 interface QueryOptions<DocType> {
-  op?: 'find' | 'findById';
+  op?: 'find' | 'findById' | 'findRelationship';
   id?: string;
+  related?: string;
   filter?: FilterQuery<DocType>;
   include?: IncludeQuery<DocType>;
   fields?: FieldsQuery;
@@ -56,6 +57,18 @@ class Query<ResultType, DocType> {
   ) => Query<ModelInstance<DocType>, DocType>;
 
   getOptions!: () => QueryOptions<DocType>;
+
+  get!: <
+    P extends {
+      [K in keyof DocType]: DocType[K] extends ModelClass<any> | Array<ModelClass<any>> ? K : never
+    }[keyof DocType]
+  > (
+    this: Query<ModelInstance<DocType>, DocType>,
+    relationship: P,
+  ) => Query<
+    DocType[P],
+    DocType[P] extends ModelInstance<infer T> | Array<ModelClass<infer T>> ? T : never
+  >;
 
   include!: (
     include: IncludeQuery<DocType>,
@@ -140,6 +153,15 @@ Query.prototype.exec = async function exec() {
     );
 
     return this.model.fromJsonApi(response.data);
+  } else if (options.op === 'findRelationship') {
+    const response = await client.client.get<JsonApiBody<JsonApiResource | null>>(
+      `/${this.model.type}/${options.id}/${options.related}`,
+      {
+        params: params,
+      }
+    );
+
+    return fromJsonApi(response.data)
   }
 
   return;
@@ -169,6 +191,14 @@ Query.prototype.findById = function (id, filter) {
     op: 'findById',
     id: id,
     filter: filter,
+  });
+  return this;
+};
+
+Query.prototype.get = function (relationship) {
+  this.setOptions({
+    op: 'findRelationship',
+    related: relationship,
   });
   return this;
 };
