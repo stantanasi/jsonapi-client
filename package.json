@@ -1,7 +1,7 @@
 {
   "name": "@stantanasi/jsonapi-client",
   "version": "1.0.0",
-  "description": " A JSON:API client built with TypeScript",
+  "description": " A JSON:API specification client built with TypeScript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -18,6 +18,13 @@
   },
   "author": "stantanasi",
   "license": "ISC",
+  "keywords": [
+    "jsonapi",
+    "typescript",
+    "jsonapi-client",
+    "react",
+    "expo"
+  ],
   "dependencies": {
     "axios": "^1.8.1"
   },
