@@ -8,7 +8,13 @@ export type FilterQuery<DocType> = {
   [key: string]: any;
 }
 
-export type IncludeQuery<DocType> = (keyof DocType | (string & {}))[];
+export type IncludeQuery<DocType> = (
+  {
+    [P in keyof DocType]: DocType[P] extends ModelClass<any> | Array<ModelClass<any>> ? P : never;
+  }[keyof DocType]
+  | (string & {})
+)[];
+
 
 export type FieldsQuery = {
   [type: string]: string[];
