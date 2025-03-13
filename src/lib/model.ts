@@ -41,6 +41,8 @@ export type ModelConstructor<DocType> = {
     ? ModelInstance<DocType>[]
     : ModelInstance<DocType> | null;
 
+  register(type: string): void;
+
   prototype: ModelInstance<DocType>;
 }
 
@@ -182,6 +184,17 @@ BaseModel.fromJsonApi = function (body) {
   } else {
     return null as any;
   }
+};
+
+BaseModel.register = function (type) {
+  this.type = type;
+  this.prototype.type = type;
+
+  this.prototype.model = () => {
+    return this;
+  };
+
+  models[type] = this;
 };
 
 
@@ -416,24 +429,14 @@ BaseModel.prototype.unmarkModified = function (path) {
 
 
 export function model<DocType>(
-  type: string,
   schema: Schema<DocType>,
 ): ModelConstructor<DocType> {
   class ModelClass extends BaseModel { }
 
   ModelClass.client = client;
 
-  ModelClass.type = type;
-  ModelClass.prototype.type = type;
-
   ModelClass.schema = schema;
   ModelClass.prototype.schema = schema;
-
-  ModelClass.prototype.model = function () {
-    return ModelClass;
-  };
-
-  models[type] = ModelClass;
 
   return ModelClass as ModelConstructor<DocType>;
 }
