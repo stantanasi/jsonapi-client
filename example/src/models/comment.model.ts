@@ -30,4 +30,8 @@ export const CommentSchema = new Schema<IComment>({
 });
 
 
-export default class Comment extends model<IComment>('comments', CommentSchema) { }
+class Comment extends model(CommentSchema) { }
+
+Comment.register('comments');
+
+export default Comment

@@ -1,7 +1,5 @@
 import { connect } from "@stantanasi/jsonapi-client";
-import Article from "./models/article.model";
-import Comment from "./models/comment.model";
-import People from "./models/people.model";
+import { Article, Comment, People } from "./models";
 
 connect({
   baseURL: 'https://example.com',
