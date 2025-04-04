@@ -1,6 +1,6 @@
 {
   "name": "@stantanasi/jsonapi-client",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": " A JSON:API specification client built with TypeScript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -26,10 +26,10 @@
     "expo"
   ],
   "dependencies": {
-    "axios": "^1.8.1"
+    "axios": "^1.8.4"
   },
   "devDependencies": {
-    "@types/node": "^22.5.5",
+    "@types/node": "^22.14.0",
     "husky": "^9.1.7",
     "typescript": "^5.6.2"
   }
