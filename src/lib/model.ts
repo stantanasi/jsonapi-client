@@ -69,6 +69,8 @@ export class ModelClass<DocType> {
 
   assign!: (obj: Partial<DocType>) => this;
 
+  copy!: (obj?: Partial<DocType>) => this;
+
   delete!: () => Promise<void>;
 
   get!: <T extends keyof DocType>(
@@ -245,6 +247,21 @@ BaseModel.prototype.assign = function (obj) {
   }
 
   return this;
+};
+
+BaseModel.prototype.copy = function (obj) {
+  const model = this.model();
+
+  const doc = new model();
+
+  doc['_doc'] = this['_doc'];
+  doc['_modifiedPath'] = this['_modifiedPath'];
+  doc.isNew = this.isNew;
+
+  doc.id = this.id;
+  if (obj) doc.assign(obj);
+
+  return doc;
 };
 
 BaseModel.prototype.delete = async function () {
