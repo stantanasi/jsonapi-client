@@ -4,14 +4,33 @@ type SchemaDefinition<DocType> = {
 }
 
 type AttributesDefinition<DocType> = {
-  [path in keyof DocType]?: PropertyDefinition<DocType[path]>;
+  [path in keyof DocType]?: AttributeDefinition<DocType[path]>;
+}
+
+type AttributeDefinition<T> = {
+  type?: typeof Date;
+
+  /** The default value for this property. */
+  default?: T | (() => T);
+
+  /** defines a custom getter for this property. */
+  get?: (value: any) => T;
+
+  /** defines a custom setter for this property. */
+  set?: (value: any) => any;
+
+  /**
+   * Define a transform function for this individual schema type.
+   * Only called when calling `toJSON()` or `toObject()`.
+   */
+  transform?: (val: T) => any;
 }
 
 type RelationshipsDefinition<DocType> = {
-  [path in keyof DocType]?: PropertyDefinition<DocType[path]>;
+  [path in keyof DocType]?: RelationshipDefinition<DocType[path]>;
 }
 
-type PropertyDefinition<T> = {
+type RelationshipDefinition<T> = {
   /** The default value for this property. */
   default?: T | (() => T);
 

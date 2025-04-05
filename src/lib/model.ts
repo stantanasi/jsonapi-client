@@ -134,6 +134,8 @@ BaseModel.findById = function (id, filter) {
 };
 
 BaseModel.fromJsonApi = function (body) {
+  const schema = this.schema;
+
   if (Array.isArray(body.data)) {
     return body.data
       .map((resource) => this.fromJsonApi({
@@ -150,7 +152,13 @@ BaseModel.fromJsonApi = function (body) {
     }
 
     // Attributes
-    for (const [attribute, value] of Object.entries(body.data.attributes ?? {})) {
+    for (let [attribute, value] of Object.entries(body.data.attributes ?? {})) {
+      const property = schema.attributes[attribute];
+
+      if (property?.type === Date && value) {
+        value = new Date(value);
+      }
+
       doc.set(attribute, value, { skipMarkModified: true });
     }
 
@@ -373,6 +381,10 @@ BaseModel.prototype.toJsonApi = function () {
     let value = this.get(attribute);
     if (options?.transform) {
       value = options.transform(value);
+    } else {
+      if (options?.type === Date && value instanceof Date) {
+        value = value.toISOString();
+      }
     }
 
     data.attributes![attribute] = value;
@@ -434,6 +446,8 @@ BaseModel.prototype.toObject = function () {
             return val;
           }
         });
+      } else if (value instanceof Date) {
+        obj[path] = value;
       } else if (typeof value === 'object') {
         obj[path] = { ...value };
       } else {
