@@ -4,7 +4,7 @@ import Query, { FilterQuery } from "./query";
 import Schema from "./schema";
 
 const models: {
-  [type: string]: ModelConstructor<any>,
+  [type: string]: ModelConstructor<Record<string, any>>,
 } = {};
 
 
@@ -134,8 +134,6 @@ BaseModel.findById = function (id, filter) {
 };
 
 BaseModel.fromJsonApi = function (body) {
-  const schema = this.schema;
-
   if (Array.isArray(body.data)) {
     return body.data
       .map((resource) => this.fromJsonApi({
@@ -229,12 +227,12 @@ BaseModel.prototype.init = function (obj, options) {
   }
 
   if (obj) {
-    if (obj.id) {
-      this.id = obj.id;
-    }
-
     for (const [key, value] of Object.entries(obj)) {
-      this.set(key, value, { skipMarkModified: true });
+      if (key === 'id') {
+        this.id = value;
+      } else {
+        this.set(key, value, { skipMarkModified: true });
+      }
     }
   }
 };
@@ -315,10 +313,10 @@ BaseModel.prototype.save = async function () {
   }
 
   const body = response.data;
-  const model = this.model().fromJsonApi(body);
+  const doc = this.model().fromJsonApi(body);
 
-  if (model) {
-    this.assign(model.toObject());
+  if (doc) {
+    this.assign(doc.toObject());
 
     this.isNew = false;
     this['_modifiedPath'] = [];
@@ -380,7 +378,7 @@ BaseModel.prototype.toJsonApi = function () {
   for (const [relationship, options] of Object.entries(this.schema.relationships)) {
     if (!this.isModified(relationship)) continue;
 
-    const value = this.get(relationship) as ModelInstance<any> | ModelInstance<any>[] | null;
+    const value = this.get(relationship) as ModelInstance<Record<string, any>> | ModelInstance<Record<string, any>>[] | null;
 
     if (Array.isArray(value)) {
       data.relationships![relationship] = {
