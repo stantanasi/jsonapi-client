@@ -17,9 +17,13 @@ export const ArticleSchema = new Schema<IArticle>({
   attributes: {
     title: {},
 
-    createdAt: {},
+    createdAt: {
+      type: Date,
+    },
 
-    updatedAt: {},
+    updatedAt: {
+      type: Date,
+    },
   },
 
   relationships: {

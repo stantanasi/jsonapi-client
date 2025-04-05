@@ -17,9 +17,13 @@ export const CommentSchema = new Schema<IComment>({
   attributes: {
     body: {},
 
-    createdAt: {},
+    createdAt: {
+      type: Date,
+    },
 
-    updatedAt: {},
+    updatedAt: {
+      type: Date,
+    },
   },
 
   relationships: {

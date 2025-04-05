@@ -23,9 +23,13 @@ export const PeopleSchema = new Schema<IPeople>({
 
     twitter: {},
 
-    createdAt: {},
+    createdAt: {
+      type: Date,
+    },
 
-    updatedAt: {},
+    updatedAt: {
+      type: Date,
+    },
   },
 
   relationships: {
