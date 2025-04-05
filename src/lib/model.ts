@@ -227,6 +227,10 @@ BaseModel.prototype.init = function (obj, options) {
   }
 
   if (obj) {
+    if (obj.id) {
+      this.id = obj.id;
+    }
+
     for (const [key, value] of Object.entries(obj)) {
       this.set(key, value, { skipMarkModified: true });
     }
@@ -390,7 +394,9 @@ BaseModel.prototype.toJsonApi = function () {
 BaseModel.prototype.toObject = function () {
   const schema = this.schema;
 
-  const obj: any = {};
+  const obj: any = {
+    id: this.id,
+  };
 
   for (const [path, options] of Object.entries(schema.attributes).concat(Object.entries(schema.relationships))) {
     let value = this.get(path);
