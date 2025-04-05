@@ -54,9 +54,9 @@ export class ModelClass<DocType> {
   /** The JSON:API resource id. */
   id!: string;
 
-  _doc!: DocType;
+  private _doc!: DocType;
 
-  _modifiedPath!: (keyof DocType)[];
+  private _modifiedPath!: (keyof DocType)[];
 
   constructor(
     obj?: Partial<DocType>,
@@ -199,8 +199,8 @@ BaseModel.register = function (type) {
 
 
 BaseModel.prototype.init = function (obj, options) {
-  this._doc = {};
-  this._modifiedPath = [];
+  this['_doc'] = {};
+  this['_modifiedPath'] = [];
 
   this.isNew = options?.isNew ?? true;
 
@@ -257,7 +257,7 @@ BaseModel.prototype.delete = async function () {
 BaseModel.prototype.get = function (path, options) {
   const schema = this.schema;
 
-  let value = this._doc[path];
+  let value = this['_doc'][path];
 
   if (options?.getter !== false) {
     const property = schema.attributes[path] ?? schema.relationships[path];
@@ -273,14 +273,14 @@ BaseModel.prototype.get = function (path, options) {
 
 BaseModel.prototype.isModified = function (path) {
   if (path) {
-    return this._modifiedPath.includes(path);
+    return this['_modifiedPath'].includes(path);
   }
 
-  return this._modifiedPath.length > 0;
+  return this['_modifiedPath'].length > 0;
 };
 
 BaseModel.prototype.markModified = function (path) {
-  this._modifiedPath.push(path);
+  this['_modifiedPath'].push(path);
 };
 
 BaseModel.prototype.save = async function () {
@@ -304,7 +304,7 @@ BaseModel.prototype.save = async function () {
     this.assign(model.toObject());
 
     this.isNew = false;
-    this._modifiedPath = [];
+    this['_modifiedPath'] = [];
   }
 
   return this;
@@ -322,7 +322,7 @@ BaseModel.prototype.set = function (path, value, options) {
     }
   }
 
-  this._doc[path] = value;
+  this['_doc'][path] = value;
 
   if (options?.skipMarkModified !== true) {
     this.markModified(path);
@@ -430,7 +430,7 @@ BaseModel.prototype.toObject = function () {
 };
 
 BaseModel.prototype.unmarkModified = function (path) {
-  this._modifiedPath = this._modifiedPath.filter((p) => p !== path);
+  this['_modifiedPath'] = this['_modifiedPath'].filter((p) => p !== path);
 };
 
 
