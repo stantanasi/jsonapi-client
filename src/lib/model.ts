@@ -370,7 +370,10 @@ BaseModel.prototype.toJsonApi = function () {
   for (const [attribute, options] of Object.entries(this.schema.attributes)) {
     if (!this.isModified(attribute)) continue;
 
-    const value = this.get(attribute);
+    let value = this.get(attribute);
+    if (options?.transform) {
+      value = options.transform(value);
+    }
 
     data.attributes![attribute] = value;
   }
