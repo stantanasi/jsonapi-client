@@ -376,7 +376,7 @@ BaseModel.prototype.toJsonApi = function () {
   };
 
   for (const [attribute, options] of Object.entries(this.schema.attributes)) {
-    if (!this.isModified(attribute)) continue;
+    if (!this.isNew && !this.isModified(attribute)) continue;
 
     let value = this.get(attribute);
     if (options?.transform) {
@@ -391,7 +391,7 @@ BaseModel.prototype.toJsonApi = function () {
   }
 
   for (const [relationship, options] of Object.entries(this.schema.relationships)) {
-    if (!this.isModified(relationship)) continue;
+    if (!this.isNew && !this.isModified(relationship)) continue;
 
     const value = this.get(relationship) as ModelInstance<Record<string, any>> | ModelInstance<Record<string, any>>[] | null;
 
