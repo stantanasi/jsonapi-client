@@ -14,7 +14,7 @@ export function connect(config: CreateAxiosDefaults) {
     ...config,
     headers: {
       ...config.headers,
-      "Content-Type": "application/vnd.api+json",
+      'Content-Type': 'application/json',
     },
   });
 }
