@@ -246,9 +246,13 @@ BaseModel.prototype.init = function (obj, options) {
 };
 
 BaseModel.prototype.assign = function (obj) {
-  for (const [path, value] of Object.entries(obj)) {
-    if (this.get(path) !== value) {
-      this.set(path, value);
+  for (const [key, value] of Object.entries(obj)) {
+    if (key === 'id') {
+      if (this.id !== value) {
+        this.id = value;
+      }
+    } else if (this.get(key) !== value) {
+      this.set(key, value);
     }
   }
 
