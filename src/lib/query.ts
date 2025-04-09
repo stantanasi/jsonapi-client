@@ -10,7 +10,7 @@ export type FilterQuery<DocType> = {
 
 export type IncludeQuery<DocType> = (
   {
-    [P in keyof DocType]: DocType[P] extends ModelClass<any> | Array<ModelClass<any>> ? P : never;
+    [P in keyof DocType]: NonNullable<DocType[P]> extends ModelClass<any> | Array<ModelClass<any>> ? P : never;
   }[keyof DocType]
   | (string & {})
 )[];
