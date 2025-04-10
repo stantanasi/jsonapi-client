@@ -71,6 +71,7 @@ class Query<ResultType, DocType> {
   > (
     this: Query<ModelInstance<DocType>, DocType>,
     relationship: P,
+    filter?: FilterQuery<NonNullable<DocType[P]> extends ModelClass<infer T> | Array<ModelClass<infer T>> ? T : never>,
   ) => Query<
     Exclude<DocType[P], undefined>,
     NonNullable<DocType[P]> extends ModelClass<infer T> | Array<ModelClass<infer T>> ? T : never
@@ -201,10 +202,11 @@ Query.prototype.findById = function (id, filter) {
   return this;
 };
 
-Query.prototype.get = function (relationship) {
+Query.prototype.get = function (relationship, filter) {
   this.setOptions({
     op: 'findRelationship',
     related: relationship,
+    filter: filter,
   });
   return this;
 };
