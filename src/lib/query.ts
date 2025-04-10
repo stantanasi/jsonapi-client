@@ -51,6 +51,10 @@ class Query<ResultType, DocType> {
     fields: FieldsQuery,
   ) => this;
 
+  filter!: (
+    filter: FilterQuery<DocType>,
+  ) => this;
+
   finally!: Promise<ResultType>['finally'];
 
   find!: (
@@ -180,6 +184,13 @@ Query.prototype.fields = function (fields) {
   });
   return this;
 }
+
+Query.prototype.filter = function (filter) {
+  this.setOptions({
+    filter: filter,
+  });
+  return this;
+};
 
 Query.prototype.finally = function (onFinally) {
   return this.exec().finally(onFinally);
