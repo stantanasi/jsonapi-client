@@ -112,7 +112,11 @@ export class ModelClass<DocType> {
 
   toJsonApi!: () => JsonApiBody<JsonApiResource>;
 
-  toObject!: () => DocType;
+  toObject!: (
+    options?: {
+      transform?: boolean,
+    },
+  ) => DocType;
 
   unmarkModified!: <T extends keyof DocType>(path: T) => void;
 }
@@ -359,7 +363,7 @@ BaseModel.prototype.set = function (path, value, options) {
 };
 
 BaseModel.prototype.toJSON = function () {
-  return this.toObject();
+  return this.toObject({ transform: true });
 };
 
 BaseModel.prototype.toJsonApi = function () {
@@ -425,18 +429,18 @@ BaseModel.prototype.toJsonApi = function () {
   return body;
 };
 
-BaseModel.prototype.toObject = function () {
+BaseModel.prototype.toObject = function (options) {
   const schema = this.schema;
 
   const obj: any = {
     id: this.id,
   };
 
-  for (const [path, options] of Object.entries(schema.attributes).concat(Object.entries(schema.relationships))) {
+  for (const [path, property] of Object.entries(schema.attributes).concat(Object.entries(schema.relationships))) {
     let value = this.get(path);
 
-    if (options?.transform) {
-      value = options.transform(value);
+    if (options?.transform && property?.transform) {
+      value = property.transform(value);
     }
 
     if (value) {
