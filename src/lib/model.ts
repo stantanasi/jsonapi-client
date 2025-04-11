@@ -218,7 +218,7 @@ BaseModel.prototype.init = function (obj, options) {
 
   const schema = this.schema;
 
-  for (const [path, options] of Object.entries(schema.attributes).concat(Object.entries(schema.relationships))) {
+  for (const [path, property] of Object.entries(schema.attributes).concat(Object.entries(schema.relationships))) {
     Object.defineProperty(this, path, {
       enumerable: true,
       configurable: true,
@@ -230,10 +230,10 @@ BaseModel.prototype.init = function (obj, options) {
       }
     });
 
-    if (options?.default !== undefined) {
-      const defaultValue = typeof options.default === 'function'
-        ? options.default()
-        : options.default;
+    if (property?.default !== undefined) {
+      const defaultValue = typeof property.default === 'function'
+        ? property.default()
+        : property.default;
       this.set(path, defaultValue, { skipMarkModified: true });
     }
   }
@@ -283,7 +283,7 @@ BaseModel.prototype.delete = async function () {
     `/${this.type}/${this.id}`,
     this.toJsonApi(),
   );
-}
+};
 
 BaseModel.prototype.get = function (path, options) {
   const schema = this.schema;
@@ -339,7 +339,7 @@ BaseModel.prototype.save = async function () {
   }
 
   return this;
-}
+};
 
 BaseModel.prototype.set = function (path, value, options) {
   const schema = this.schema;
@@ -383,14 +383,14 @@ BaseModel.prototype.toJsonApi = function () {
     relationships: {},
   };
 
-  for (const [attribute, options] of Object.entries(this.schema.attributes)) {
+  for (const [attribute, property] of Object.entries(this.schema.attributes)) {
     if (!this.isNew && !this.isModified(attribute)) continue;
 
     let value = this.get(attribute);
-    if (options?.transform) {
-      value = options.transform(value);
+    if (property?.transform) {
+      value = property.transform(value);
     } else {
-      if (options?.type === Date && value instanceof Date) {
+      if (property?.type === Date && value instanceof Date) {
         value = value.toISOString();
       }
     }
@@ -398,7 +398,7 @@ BaseModel.prototype.toJsonApi = function () {
     data.attributes![attribute] = value;
   }
 
-  for (const [relationship, options] of Object.entries(this.schema.relationships)) {
+  for (const [relationship, property] of Object.entries(this.schema.relationships)) {
     if (!this.isNew && !this.isModified(relationship)) continue;
 
     const value = this.get(relationship) as ModelInstance<Record<string, any>> | ModelInstance<Record<string, any>>[] | null;
