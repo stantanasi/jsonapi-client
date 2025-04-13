@@ -445,11 +445,11 @@ BaseModel.prototype.toObject = function (options) {
 
     if (value) {
       if (value instanceof BaseModel) {
-        obj[path] = value.toObject();
+        obj[path] = value.toObject(options);
       } else if (Array.isArray(value)) {
         obj[path] = value.map((val) => {
           if (val instanceof BaseModel) {
-            return val.toObject();
+            return val.toObject(options);
           } else {
             return val;
           }
