@@ -439,8 +439,14 @@ BaseModel.prototype.toObject = function (options) {
   for (const [path, property] of Object.entries(schema.attributes).concat(Object.entries(schema.relationships))) {
     let value = this.get(path);
 
-    if (options?.transform && property?.transform) {
-      value = property.transform(value);
+    if (options?.transform) {
+      if (property?.transform) {
+        value = property.transform(value);
+      } else {
+        if (property?.type === Date && value instanceof Date) {
+          value = value.toISOString();
+        }
+      }
     }
 
     if (value) {
