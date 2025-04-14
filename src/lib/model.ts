@@ -268,8 +268,8 @@ BaseModel.prototype.copy = function (obj) {
 
   const doc = new model();
 
-  doc['_doc'] = this['_doc'];
-  doc['_modifiedPath'] = this['_modifiedPath'];
+  doc['_doc'] = { ...this['_doc'] };
+  doc['_modifiedPath'] = [...this['_modifiedPath']];
   doc.isNew = this.isNew;
 
   doc.id = this.id;
