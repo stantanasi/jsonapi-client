@@ -46,7 +46,7 @@ export type ModelConstructor<DocType> = {
   prototype: ModelInstance<DocType>;
 }
 
-export class ModelClass<DocType> {
+export class Model<DocType> {
 
   /** The JSON:API resource type. */
   type!: string;
@@ -121,10 +121,10 @@ export class ModelClass<DocType> {
   unmarkModified!: <T extends keyof DocType>(path: T) => void;
 }
 
-export type ModelInstance<DocType> = ModelClass<DocType> & DocType
+export type ModelInstance<DocType> = Model<DocType> & DocType
 
 
-const BaseModel = ModelClass as ModelConstructor<Record<string, any>>;
+const BaseModel = Model as ModelConstructor<Record<string, any>>;
 
 
 BaseModel.find = function (filter) {
