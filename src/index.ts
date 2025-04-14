@@ -4,6 +4,7 @@ export {
 
 export {
   model,
+  Model,
   ModelConstructor,
   ModelInstance
 } from './lib/model'
