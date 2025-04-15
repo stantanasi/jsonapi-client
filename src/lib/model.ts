@@ -11,7 +11,7 @@ const models: {
 export type ModelConstructor<DocType> = {
 
   new(
-    obj?: Partial<DocType>,
+    obj?: Partial<DocType> | Record<string, any>,
     options?: {
       isNew?: boolean;
     }
@@ -67,7 +67,7 @@ export class Model<DocType> {
     this.init(obj, options);
   }
 
-  assign!: (obj: Partial<DocType>) => this;
+  assign!: (obj: Partial<DocType> | Record<string, any>) => this;
 
   copy!: (obj?: Partial<DocType>) => this;
 
@@ -218,15 +218,15 @@ BaseModel.prototype.init = function (obj, options) {
 
   const schema = this.schema;
 
-  for (const [path, property] of Object.entries(schema.attributes).concat(Object.entries(schema.relationships))) {
-    Object.defineProperty(this, path, {
+  for (const [attribute, property] of Object.entries(schema.attributes)) {
+    Object.defineProperty(this, attribute, {
       enumerable: true,
       configurable: true,
       get: () => {
-        return this.get(path)
+        return this.get(attribute)
       },
       set: (value) => {
-        this.set(path, value)
+        this.set(attribute, value)
       }
     });
 
@@ -234,7 +234,27 @@ BaseModel.prototype.init = function (obj, options) {
       const defaultValue = typeof property.default === 'function'
         ? property.default()
         : property.default;
-      this.set(path, defaultValue, { skipMarkModified: true });
+      this.set(attribute, defaultValue, { skipMarkModified: true });
+    }
+  }
+
+  for (const [relationship, property] of Object.entries(schema.relationships)) {
+    Object.defineProperty(this, relationship, {
+      enumerable: true,
+      configurable: true,
+      get: () => {
+        return this.get(relationship)
+      },
+      set: (value) => {
+        this.set(relationship, value)
+      }
+    });
+
+    if (property?.default !== undefined) {
+      const defaultValue = typeof property.default === 'function'
+        ? property.default()
+        : property.default;
+      this.set(relationship, defaultValue, { skipMarkModified: true });
     }
   }
 
@@ -345,11 +365,22 @@ BaseModel.prototype.set = function (path, value, options) {
   const schema = this.schema;
 
   if (options?.setter !== false) {
-    const property = schema.attributes[path] ?? schema.relationships[path];
-    const setter = property?.set;
+    if (schema.attributes[path]) {
+      const property = schema.attributes[path];
 
-    if (property && setter) {
-      value = setter(value);
+      if (value && property?.type === Date && !(value instanceof Date)) {
+        value = new Date(value);
+      }
+
+      if (property?.set) {
+        value = property.set(value);
+      }
+    } else if (schema.relationships[path]) {
+      const property = schema.relationships[path];
+
+      if (property?.set) {
+        value = property.set(value);
+      }
     }
   }
 
@@ -436,8 +467,8 @@ BaseModel.prototype.toObject = function (options) {
     id: this.id,
   };
 
-  for (const [path, property] of Object.entries(schema.attributes).concat(Object.entries(schema.relationships))) {
-    let value = this.get(path);
+  for (const [attribute, property] of Object.entries(schema.attributes)) {
+    let value = this.get(attribute);
 
     if (options?.transform) {
       if (property?.transform) {
@@ -450,25 +481,45 @@ BaseModel.prototype.toObject = function (options) {
     }
 
     if (value) {
+      if (value instanceof Date) {
+        obj[attribute] = value;
+      } else if (typeof value === 'object') {
+        obj[attribute] = { ...value };
+      } else {
+        obj[attribute] = value;
+      }
+    } else {
+      obj[attribute] = value;
+    }
+  }
+
+  for (const [relationship, property] of Object.entries(schema.relationships)) {
+    let value = this.get(relationship);
+
+    if (options?.transform) {
+      if (property?.transform) {
+        value = property.transform(value);
+      }
+    }
+
+    if (value) {
       if (value instanceof BaseModel) {
-        obj[path] = value.toObject(options);
+        obj[relationship] = value.toObject(options);
       } else if (Array.isArray(value)) {
-        obj[path] = value.map((val) => {
+        obj[relationship] = value.map((val) => {
           if (val instanceof BaseModel) {
             return val.toObject(options);
           } else {
             return val;
           }
         });
-      } else if (value instanceof Date) {
-        obj[path] = value;
       } else if (typeof value === 'object') {
-        obj[path] = { ...value };
+        obj[relationship] = { ...value };
       } else {
-        obj[path] = value;
+        obj[relationship] = value;
       }
     } else {
-      obj[path] = value;
+      obj[relationship] = value;
     }
   }
 
