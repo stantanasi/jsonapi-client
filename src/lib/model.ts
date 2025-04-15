@@ -95,6 +95,8 @@ export class Model<DocType> {
 
   model!: () => ModelConstructor<DocType>;
 
+  modifiedPaths!: () => string[];
+
   save!: () => Promise<this>;
 
   schema!: Schema<DocType>;
@@ -332,6 +334,10 @@ BaseModel.prototype.isModified = function (path) {
 
 BaseModel.prototype.markModified = function (path) {
   this['_modifiedPath'].push(path);
+};
+
+BaseModel.prototype.modifiedPaths = function () {
+  return [...this['_modifiedPath']];
 };
 
 BaseModel.prototype.save = async function () {
