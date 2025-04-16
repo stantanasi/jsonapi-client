@@ -470,6 +470,7 @@ BaseModel.prototype.toObject = function (options) {
   const schema = this.schema;
 
   const obj: any = {
+    type: this.type,
     id: this.id,
   };
 
