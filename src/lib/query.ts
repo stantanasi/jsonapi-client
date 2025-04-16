@@ -21,8 +21,10 @@ export type FieldsQuery = {
 };
 
 export type SortQuery<DocType> = {
-  [P in keyof DocType]?: -1 | 1 | 'asc' | 'ascending' | 'desc' | 'descending'
-}
+  [P in keyof DocType]?: -1 | 1 | 'asc' | 'ascending' | 'desc' | 'descending';
+} & {
+  [key: string]: -1 | 1 | 'asc' | 'ascending' | 'desc' | 'descending';
+};
 
 interface QueryOptions<DocType> {
   op?: 'find' | 'findById' | 'findRelationship';
