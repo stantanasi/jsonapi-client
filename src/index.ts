@@ -21,3 +21,11 @@ export {
   default as Schema
 } from './lib/schema'
 
+export {
+  JsonApiBody,
+  JsonApiError,
+  JsonApiIdentifier,
+  JsonApiQueryParams,
+  JsonApiResource
+} from './types/jsonapi.type'
+
