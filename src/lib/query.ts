@@ -2,19 +2,20 @@ import { JsonApiBody, JsonApiResource } from "../types/jsonapi.type";
 import { fromJsonApi, Model, ModelConstructor, ModelInstance } from "./model";
 import Schema from "./schema";
 
+type ExtractDocType<T> =
+  T extends Model<infer U> ? U :
+  T extends Model<infer U>[] ? U :
+  never;
+
 export type FilterQuery<DocType> = {
   [P in keyof DocType]?: DocType[P];
 } & {
   [key: string]: any;
 }
 
-export type IncludeQuery<DocType> = (
-  {
-    [P in keyof DocType]: NonNullable<DocType[P]> extends Model<any> | Array<Model<any>> ? P : never;
-  }[keyof DocType]
-  | (string & {})
-)[];
-
+export type IncludeQuery<DocType> = {
+  [P in keyof DocType as ExtractDocType<DocType[P]> extends never ? never : P]: IncludeQuery<ExtractDocType<DocType[P]>> | boolean;
+};
 
 export type FieldsQuery = {
   [type: string]: string[];
@@ -126,10 +127,28 @@ Query.prototype.catch = function (reject) {
 Query.prototype.exec = async function exec() {
   const client = this.model.client;
 
+  const flattenIncludeQuery = (obj: IncludeQuery<any>, prefix = ''): string[] => {
+    return Object.entries(obj).reduce((acc, [key, value]) => {
+      const path = prefix ? `${prefix}.${key}` : key;
+
+      if (typeof value === 'boolean') {
+        return value
+          ? acc.concat(path)
+          : acc;
+      } else if (value && typeof value === 'object' && Object.keys(value).length > 0) {
+        return acc.concat(flattenIncludeQuery(value, path));
+      }
+
+      return acc.concat(path);
+    }, [] as string[]);
+  };
+
   const options = this.getOptions();
   const params = {
     filter: options.filter,
-    include: options.include?.join(','),
+    include: options.include
+      ? flattenIncludeQuery(options.include).join(',')
+      : undefined,
     fields: options.fields,
     sort: options.sort
       ? Object.entries(options.sort)
