@@ -10,7 +10,11 @@ export {
 } from './lib/model'
 
 export {
-  default as Query
+  FieldsQuery,
+  FilterQuery,
+  IncludeQuery,
+  default as Query,
+  SortQuery
 } from './lib/query'
 
 export {
