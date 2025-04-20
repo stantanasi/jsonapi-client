@@ -3,6 +3,38 @@ import Client, { client } from "./client";
 import Query, { FilterQuery } from "./query";
 import Schema from "./schema";
 
+type JsonifiedValue<T> =
+  T extends Model<infer U> ? Json<U> :
+  T extends Model<infer U>[] ? Json<U>[] :
+  T extends Date ? string :
+  T;
+
+export type Json<DocType> = {
+  /** The JSON:API resource type. */
+  type: string;
+
+  /** The JSON:API resource id. */
+  id: string;
+} & {
+  [K in keyof DocType]: JsonifiedValue<DocType[K]>;
+};
+
+type ObjectifiedValue<T> =
+  T extends Model<infer U> ? Object<U> :
+  T extends Model<infer U>[] ? Object<U>[] :
+  T;
+
+export type Object<DocType> = {
+  /** The JSON:API resource type. */
+  type: string;
+
+  /** The JSON:API resource id. */
+  id: string;
+} & {
+  [K in keyof DocType]: ObjectifiedValue<DocType[K]>;
+};
+
+
 const models: {
   [type: string]: ModelConstructor<Record<string, any>>,
 } = {};
@@ -11,7 +43,7 @@ const models: {
 export type ModelConstructor<DocType> = {
 
   new(
-    obj?: Partial<DocType> | Record<string, any>,
+    obj?: Partial<DocType> | Partial<Object<DocType>> | Partial<Json<DocType>> | Record<string, any>,
     options?: {
       isNew?: boolean;
     }
@@ -67,7 +99,7 @@ export class Model<DocType> {
     this.init(obj, options);
   }
 
-  assign!: (obj: Partial<DocType> | Record<string, any>) => this;
+  assign!: (obj: Partial<DocType> | Partial<Object<DocType>> | Partial<Json<DocType>> | Record<string, any>) => this;
 
   copy!: (obj?: Partial<DocType>) => this;
 
@@ -110,7 +142,7 @@ export class Model<DocType> {
     },
   ) => this;
 
-  toJSON!: () => DocType;
+  toJSON!: () => Json<DocType>;
 
   toJsonApi!: () => JsonApiBody<JsonApiResource>;
 
@@ -118,7 +150,7 @@ export class Model<DocType> {
     options?: {
       transform?: boolean,
     },
-  ) => DocType;
+  ) => Object<DocType>;
 
   unmarkModified!: <T extends keyof DocType>(path: T) => void;
 }

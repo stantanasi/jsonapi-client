@@ -3,10 +3,12 @@ export {
 } from './lib/client'
 
 export {
+  Json,
   model,
   Model,
   ModelConstructor,
-  ModelInstance
+  ModelInstance,
+  Object
 } from './lib/model'
 
 export {
