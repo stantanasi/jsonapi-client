@@ -73,7 +73,7 @@ export type ModelConstructor<DocType> = {
     ? ModelInstance<DocType>[]
     : ModelInstance<DocType> | null;
 
-  register(type: string): void;
+  register: (type: string) => void;
 
   prototype: ModelInstance<DocType>;
 }
