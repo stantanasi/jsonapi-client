@@ -135,11 +135,12 @@ Query.prototype.exec = async function exec() {
         return value
           ? acc.concat(path)
           : acc;
-      } else if (value && typeof value === 'object' && Object.keys(value).length > 0) {
-        return acc.concat(flattenIncludeQuery(value, path));
+      } else {
+        const childPaths = flattenIncludeQuery(value, path);
+        return childPaths.length > 0
+          ? acc.concat(childPaths)
+          : acc.concat(path);
       }
-
-      return acc.concat(path);
     }, [] as string[]);
   };
 
