@@ -1,6 +1,6 @@
 {
   "name": "@stantanasi/jsonapi-client",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": " A JSON:API specification client built with TypeScript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
