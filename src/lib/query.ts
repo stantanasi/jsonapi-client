@@ -2,6 +2,11 @@ import { JsonApiBody, JsonApiResource } from "../types/jsonapi.type";
 import { fromJsonApi, Model, ModelConstructor, ModelInstance } from "./model";
 import Schema from "./schema";
 
+type RawResultType<T> = {
+  result: T;
+  body: JsonApiBody<T extends ModelInstance<unknown>[] ? JsonApiResource[] : JsonApiResource>;
+}
+
 type ExtractDocType<T> =
   T extends Model<infer U> ? U :
   T extends Model<infer U>[] ? U :
@@ -37,6 +42,7 @@ interface QueryOptions<DocType> {
   sort?: SortQuery<DocType>;
   limit?: number;
   offset?: number;
+  raw?: boolean;
 }
 
 
@@ -98,6 +104,10 @@ class Query<ResultType, DocType> {
   ) => this;
 
   options!: QueryOptions<DocType>;
+
+  raw!: () => this extends Query<infer ResultType, infer ResultDocType>
+    ? ResultType extends RawResultType<any> ? this : Query<RawResultType<ResultType>, ResultDocType>
+    : never;
 
   schema!: Schema<DocType>;
 
@@ -172,8 +182,14 @@ Query.prototype.exec = async function exec() {
       }
     );
 
-    return this.model.fromJsonApi(response.data);
+    if (options.raw) {
+      return {
+        result: this.model.fromJsonApi(response.data),
+        body: response.data,
+      } as RawResultType<ModelInstance<unknown>[]>;
+    }
 
+    return this.model.fromJsonApi(response.data);
   } else if (options.op === 'findById') {
     const response = await client.client.get<JsonApiBody<JsonApiResource | null>>(
       `/${this.model.type}/${options.id}`,
@@ -181,6 +197,13 @@ Query.prototype.exec = async function exec() {
         params: params,
       }
     );
+
+    if (options.raw) {
+      return {
+        result: this.model.fromJsonApi(response.data),
+        body: response.data,
+      } as RawResultType<ModelInstance<unknown>>;
+    }
 
     return this.model.fromJsonApi(response.data);
   } else if (options.op === 'findRelationship') {
@@ -191,7 +214,14 @@ Query.prototype.exec = async function exec() {
       }
     );
 
-    return fromJsonApi(response.data)
+    if (options.raw) {
+      return {
+        result: fromJsonApi(response.data),
+        body: response.data,
+      } as RawResultType<ModelInstance<unknown> | ModelInstance<unknown>[]>;
+    }
+
+    return fromJsonApi(response.data);
   }
 
   return;
@@ -262,6 +292,13 @@ Query.prototype.limit = function (limit) {
 Query.prototype.offset = function (offset) {
   this.setOptions({
     offset: offset,
+  });
+  return this;
+};
+
+Query.prototype.raw = function () {
+  this.setOptions({
+    raw: true,
   });
   return this;
 };
