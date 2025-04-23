@@ -73,16 +73,13 @@ class Query<ResultType, DocType> {
 
   get!: <
     P extends {
-      [K in keyof DocType]: NonNullable<DocType[K]> extends Model<any> | Array<Model<any>> ? K : never
+      [K in keyof DocType]: ExtractDocType<DocType[K]> extends never ? never : K
     }[keyof DocType]
   > (
     this: Query<ModelInstance<DocType>, DocType>,
     relationship: P,
-    filter?: FilterQuery<NonNullable<DocType[P]> extends Model<infer T> | Array<Model<infer T>> ? T : never>,
-  ) => Query<
-    Exclude<DocType[P], undefined>,
-    NonNullable<DocType[P]> extends Model<infer T> | Array<Model<infer T>> ? T : never
-  >;
+    filter?: FilterQuery<ExtractDocType<DocType[P]>>,
+  ) => Query<Exclude<DocType[P], undefined>, ExtractDocType<DocType[P]>>;
 
   include!: (
     include: IncludeQuery<DocType>,
