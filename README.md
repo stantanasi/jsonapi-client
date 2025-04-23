@@ -12,9 +12,9 @@ npm install @stantanasi/jsonapi-client
 
 ## Usage
 
-Create JSON:API model
+### Create JSON:API model
 
-### JavaScript
+#### JavaScript
 
 ```javascript
 import { model, Schema } from '@stantanasi/jsonapi-client';
@@ -38,7 +38,7 @@ Article.register('articles')
 export default Article
 ```
 
-### TypeScript
+#### TypeScript
 
 ```typescript
 import { model, Schema } from '@stantanasi/jsonapi-client';
@@ -71,7 +71,7 @@ Article.register('articles')
 export default Article
 ```
 
-Use methods
+### Use methods
 
 ```typescript
 import { connect } from '@stantanasi/jsonapi-client'
@@ -107,6 +107,50 @@ await article.save()
 
 // DELETE /articles/1 HTTP/1.1
 await article.delete()
+```
+
+#### Inclusion of Related Resources
+
+```typescript
+// GET /articles?include=author.comments HTTP/1.1
+await Article.find()
+  .include({ author: { comments: true } })
+```
+
+#### Sparse Fieldsets
+
+```typescript
+// GET /articles?fields[articles]=title,author HTTP/1.1
+await Article.find()
+  .fields({
+    articles: ['title', 'author'],
+  })
+```
+
+#### Sorting
+
+```typescript
+// GET /articles?sort=-createdAt HTTP/1.1
+await Article.find()
+  .sort({ createdAt: 'desc' })
+```
+
+#### Pagination
+
+```typescript
+// GET /articles?page[limit]=10&page[offset]=0 HTTP/1.1
+await Article.find()
+  .limit(10)
+  .offset(0)
+```
+
+#### Filtering
+
+```typescript
+// GET /articles?filter[title]=JSON:API%20paints%20my%20bikeshed! HTTP/1.1
+await Article.find({
+  title: 'JSON:API paints my bikeshed!',
+})
 ```
 
 Please refer to the [example](./example/README.md) folder to see how to use it
