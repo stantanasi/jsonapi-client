@@ -3,8 +3,6 @@ import Article from './article.model';
 import Comment from './comment.model';
 
 export interface IPeople {
-  id: string;
-
   'first-name': string;
   'last-name': string;
   twitter: string | null;

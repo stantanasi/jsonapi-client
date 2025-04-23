@@ -3,8 +3,6 @@ import Article from './article.model';
 import People from './people.model';
 
 export interface IComment {
-  id: string;
-
   body: string;
   createdAt: Date;
   updatedAt: Date;
