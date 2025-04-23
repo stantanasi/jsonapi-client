@@ -14,7 +14,7 @@ export type FilterQuery<DocType> = {
 }
 
 export type IncludeQuery<DocType> = {
-  [P in keyof DocType as ExtractDocType<DocType[P]> extends never ? never : P]: IncludeQuery<ExtractDocType<DocType[P]>> | boolean;
+  [P in keyof DocType as ExtractDocType<DocType[P]> extends never ? never : P]?: IncludeQuery<ExtractDocType<DocType[P]>> | boolean;
 };
 
 export type FieldsQuery = {
@@ -133,7 +133,7 @@ Query.prototype.exec = async function exec() {
           ? acc.concat(path)
           : acc;
       } else {
-        const childPaths = flattenIncludeQuery(value, path);
+        const childPaths = flattenIncludeQuery(value ?? {}, path);
         return childPaths.length > 0
           ? acc.concat(childPaths)
           : acc.concat(path);
