@@ -35,7 +35,7 @@ export type Object<DocType> = {
 };
 
 
-const models: {
+export const models: {
   [type: string]: ModelConstructor<Record<string, any>>,
 } = {};
 

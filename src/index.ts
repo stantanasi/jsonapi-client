@@ -8,6 +8,7 @@ export {
   Model,
   ModelConstructor,
   ModelInstance,
+  models,
   Object
 } from './lib/model'
 
