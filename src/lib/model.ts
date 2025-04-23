@@ -1,4 +1,4 @@
-import { JsonApiBody, JsonApiResource } from "../types/jsonapi.type";
+import { JsonApiBody, JsonApiIdentifier, JsonApiResource } from "../types/jsonapi.type";
 import Client, { client } from "./client";
 import Query, { FilterQuery } from "./query";
 import Schema from "./schema";
@@ -111,6 +111,8 @@ export class Model<DocType> {
       getter?: boolean,
     },
   ) => DocType[T];
+
+  identifier!: () => JsonApiIdentifier;
 
   init!: (
     obj?: Partial<DocType>,
@@ -356,6 +358,13 @@ BaseModel.prototype.get = function (path, options) {
   return value;
 };
 
+BaseModel.prototype.identifier = function () {
+  return {
+    type: this.type,
+    id: this.id,
+  };
+};
+
 BaseModel.prototype.isModified = function (path) {
   if (path) {
     return this['_modifiedPath'].includes(path);
@@ -474,17 +483,11 @@ BaseModel.prototype.toJsonApi = function () {
 
     if (Array.isArray(value)) {
       data.relationships![relationship] = {
-        data: value.map((val) => ({
-          type: val.type,
-          id: val.id,
-        })),
+        data: value.map((val) => val.identifier()),
       };
     } else if (value) {
       data.relationships![relationship] = {
-        data: {
-          type: value.type,
-          id: value.id,
-        }
+        data: value.identifier(),
       };
     } else {
       data.relationships![relationship] = {
