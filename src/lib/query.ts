@@ -255,6 +255,20 @@ Query.prototype.include = function (include) {
   return this;
 };
 
+Query.prototype.limit = function (limit) {
+  this.setOptions({
+    limit: limit,
+  });
+  return this;
+};
+
+Query.prototype.offset = function (offset) {
+  this.setOptions({
+    offset: offset,
+  });
+  return this;
+};
+
 Query.prototype.setOptions = function (options, overwrite) {
   if (overwrite) {
     this.options = options;
@@ -274,20 +288,6 @@ Query.prototype.setOptions = function (options, overwrite) {
 
   merge(this.options, { ...options });
 
-  return this;
-};
-
-Query.prototype.limit = function (limit) {
-  this.setOptions({
-    limit: limit,
-  });
-  return this;
-};
-
-Query.prototype.offset = function (offset) {
-  this.setOptions({
-    offset: offset,
-  });
   return this;
 };
 
