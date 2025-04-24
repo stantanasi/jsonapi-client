@@ -8,8 +8,8 @@ type RawResultType<T> = {
 }
 
 type ExtractDocType<T> =
-  T extends Model<infer U> ? U :
-  T extends Model<infer U>[] ? U :
+  T extends Model<infer DocType> ? DocType :
+  T extends Model<infer DocType>[] ? DocType :
   never;
 
 export type FilterQuery<DocType> = {

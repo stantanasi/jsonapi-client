@@ -4,8 +4,8 @@ import Query, { FilterQuery } from "./query";
 import Schema from "./schema";
 
 type JsonifiedValue<T> =
-  T extends Model<infer U> ? Json<U> :
-  T extends Model<infer U>[] ? Json<U>[] :
+  T extends Model<infer DocType> ? Json<DocType> :
+  T extends Model<infer DocType>[] ? Json<DocType>[] :
   T extends Date ? string :
   T;
 
@@ -20,8 +20,8 @@ export type Json<DocType> = {
 };
 
 type ObjectifiedValue<T> =
-  T extends Model<infer U> ? Object<U> :
-  T extends Model<infer U>[] ? Object<U>[] :
+  T extends Model<infer DocType> ? Object<DocType> :
+  T extends Model<infer DocType>[] ? Object<DocType>[] :
   T;
 
 export type Object<DocType> = {
