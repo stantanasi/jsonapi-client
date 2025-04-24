@@ -16,10 +16,12 @@ export type FilterQuery<DocType> = {
   [P in keyof DocType]?: DocType[P];
 } & {
   [key: string]: any;
-}
+};
 
 export type IncludeQuery<DocType> = {
   [P in keyof DocType as ExtractDocType<DocType[P]> extends never ? never : P]?: IncludeQuery<ExtractDocType<DocType[P]>> | boolean;
+} & {
+  [key: string]: IncludeQuery<any> | boolean;
 };
 
 export type FieldsQuery = {
