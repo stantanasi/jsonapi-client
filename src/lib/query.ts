@@ -159,7 +159,11 @@ Query.prototype.exec = async function exec() {
     include: options.include
       ? flattenIncludeQuery(options.include).join(',')
       : undefined,
-    fields: options.fields,
+    fields: options.fields
+      ? Object.fromEntries(
+        Object.entries(options.fields).map(([type, fields]) => [type, fields.join(',')])
+      )
+      : undefined,
     sort: options.sort
       ? Object.entries(options.sort)
         .map(([field, order]) => {
