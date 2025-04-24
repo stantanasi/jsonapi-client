@@ -19,7 +19,7 @@ Article.findById('1')
 Comment.find()
   .then((comments) => console.log(comments));
 
-// GET /comments/1 HTTP/1.1
+// GET /comments/5 HTTP/1.1
 Comment.findById('5')
   .then((comment) => console.log(comment));
 
@@ -28,6 +28,6 @@ Comment.findById('5')
 People.find()
   .then((peoples) => console.log(peoples));
 
-// GET /people/1 HTTP/1.1
+// GET /people/9 HTTP/1.1
 People.findById('9')
   .then((people) => console.log(people));
