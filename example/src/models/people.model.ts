@@ -31,9 +31,13 @@ export const PeopleSchema = new Schema<IPeople>({
   },
 
   relationships: {
-    articles: {},
+    articles: {
+      type: 'articles',
+    },
 
-    comments: {},
+    comments: {
+      type: 'comments',
+    },
   },
 });
 
