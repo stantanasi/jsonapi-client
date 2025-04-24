@@ -25,9 +25,13 @@ export const ArticleSchema = new Schema<IArticle>({
   },
 
   relationships: {
-    author: {},
+    author: {
+      type: 'people',
+    },
 
-    comments: {},
+    comments: {
+      type: 'comments',
+    },
   },
 });
 

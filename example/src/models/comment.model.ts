@@ -25,9 +25,13 @@ export const CommentSchema = new Schema<IComment>({
   },
 
   relationships: {
-    article: {},
+    article: {
+      type: 'articles',
+    },
 
-    author: {},
+    author: {
+      type: 'people',
+    },
   },
 });
 
