@@ -1,5 +1,5 @@
-import { JsonApiBody, JsonApiResource } from "../types/jsonapi.type";
-import { fromJsonApi, Model, ModelConstructor, ModelInstance } from "./model";
+import { JsonApiBody, JsonApiQueryParams, JsonApiResource } from "../types/jsonapi.type";
+import { fromJsonApi, Model, ModelConstructor, ModelInstance, models } from "./model";
 import Schema from "./schema";
 
 type RawResultType<T> = {
@@ -53,6 +53,8 @@ class Query<ResultType, DocType> {
   constructor(model: ModelConstructor<DocType>) {
     this.init(model);
   }
+
+  buildParams!: () => JsonApiQueryParams;
 
   catch!: Promise<ResultType>['catch'];
 
@@ -129,6 +131,119 @@ Query.prototype.init = function (model) {
   this.options = {};
 };
 
+Query.prototype.buildParams = function () {
+  const options = this.getOptions();
+
+  const getJsonApiName = (
+    key: string,
+    schema?: Schema<any>,
+  ): string => {
+    if (schema?.attributes[key]) {
+      return schema.attributes[key].name ?? key;
+    } else if (schema?.relationships[key]) {
+      return schema.relationships[key].name ?? key;
+    }
+    return key;
+  };
+
+  const buildFilterParams = (
+    filter: FilterQuery<any>,
+    schema?: Schema<any>,
+  ): JsonApiQueryParams['filter'] => {
+    return Object.fromEntries(
+      Object.entries(filter).map(([key, value]) => [getJsonApiName(key, schema), value])
+    );
+  };
+
+  const buildIncludeParams = (
+    include: IncludeQuery<any>,
+    schema?: Schema<any>,
+  ): JsonApiQueryParams['include'] => {
+    const flattenInclude = (
+      obj: IncludeQuery<any>,
+      schema?: Schema<any>,
+      prefix = '',
+    ): string[] => {
+      return Object.entries(obj).flatMap(([key, value]) => {
+        let name = schema?.relationships[key]?.name ?? key;
+        const path = prefix ? `${prefix}.${name}` : name;
+
+        if (typeof value === 'boolean') {
+          return value ? [path] : [];
+        }
+
+        const subType = schema?.relationships[key]?.type;
+        const subSchema = Array.isArray(subType)
+          ? models[subType[0]].schema
+          : subType
+            ? models[subType].schema
+            : undefined;
+
+        const subPaths = flattenInclude(value ?? {}, subSchema, path);
+        return subPaths.length ? subPaths : [path];
+      });
+    };
+
+    return flattenInclude(include, schema).join(',');
+  };
+
+  const buildFieldsParams = (
+    fields: FieldsQuery,
+  ): JsonApiQueryParams['fields'] => {
+    return Object.fromEntries(
+      Object.entries(fields).map(([type, list]) => {
+        const schema = models[type]?.schema;
+
+        const names = list
+          .map((field) => getJsonApiName(field, schema))
+          .join(',');
+
+        return [type, names];
+      })
+    );
+  };
+
+  const buildSortParams = (
+    sort: SortQuery<any>,
+    schema?: Schema<any>,
+  ): JsonApiQueryParams['sort'] => {
+    return Object.entries(sort)
+      .map(([key, order]) => {
+        let name = getJsonApiName(key, schema)
+
+        if (order === -1 || order === 'desc' || order === 'descending') {
+          return `-${name}`;
+        }
+        return name;
+      })
+      .join(',');
+  };
+
+  const getSchema = () => {
+    if (options.op === 'findRelationship' && options.related) {
+      const property = this.model.schema.relationships[options.related];
+      return Array.isArray(property?.type)
+        ? models[property.type[0]].schema
+        : property?.type
+          ? models[property.type].schema
+          : undefined;
+    }
+    return this.model.schema;
+  };
+  const schema = getSchema();
+
+  return {
+    filter: options.filter ? buildFilterParams(options.filter, schema) : undefined,
+    include: options.include ? buildIncludeParams(options.include, schema) : undefined,
+    fields: options.fields ? buildFieldsParams(options.fields) : undefined,
+    sort: options.sort ? buildSortParams(options.sort, schema) : undefined,
+    page: {
+      limit: options.limit,
+      offset: options.offset,
+    },
+  };
+};
+
 Query.prototype.catch = function (reject) {
   return this.exec().then(null, reject);
 };
@@ -136,55 +251,13 @@ Query.prototype.catch = function (reject) {
 Query.prototype.exec = async function exec() {
   const client = this.model.client;
 
-  const flattenIncludeQuery = (obj: IncludeQuery<any>, prefix = ''): string[] => {
-    return Object.entries(obj).reduce((acc, [key, value]) => {
-      const path = prefix ? `${prefix}.${key}` : key;
-
-      if (typeof value === 'boolean') {
-        return value
-          ? acc.concat(path)
-          : acc;
-      } else {
-        const childPaths = flattenIncludeQuery(value ?? {}, path);
-        return childPaths.length > 0
-          ? acc.concat(childPaths)
-          : acc.concat(path);
-      }
-    }, [] as string[]);
-  };
-
   const options = this.getOptions();
-  const params = {
-    filter: options.filter,
-    include: options.include
-      ? flattenIncludeQuery(options.include).join(',')
-      : undefined,
-    fields: options.fields
-      ? Object.fromEntries(
-        Object.entries(options.fields).map(([type, fields]) => [type, fields.join(',')])
-      )
-      : undefined,
-    sort: options.sort
-      ? Object.entries(options.sort)
-        .map(([field, order]) => {
-          if (order === -1 || order === 'desc' || order === 'descending') {
-            return `-${field}`;
-          }
-          return field;
-        })
-        .join(',')
-      : undefined,
-    page: {
-      limit: options.limit,
-      offset: options.offset,
-    },
-  };
 
   if (options.op === 'find') {
     const response = await client.client.get<JsonApiBody<JsonApiResource[]>>(
       `/${this.model.type}`,
       {
-        params: params,
+        params: this.buildParams(),
       }
     );
 
@@ -200,7 +273,7 @@ Query.prototype.exec = async function exec() {
     const response = await client.client.get<JsonApiBody<JsonApiResource | null>>(
       `/${this.model.type}/${options.id}`,
       {
-        params: params,
+        params: this.buildParams(),
       }
     );
 
@@ -216,7 +289,7 @@ Query.prototype.exec = async function exec() {
     const response = await client.client.get<JsonApiBody<JsonApiResource | null>>(
       `/${this.model.type}/${options.id}/${options.related}`,
       {
-        params: params,
+        params: this.buildParams(),
       }
     );
 
