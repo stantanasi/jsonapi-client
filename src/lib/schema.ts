@@ -8,6 +8,9 @@ type AttributesDefinition<DocType> = {
 }
 
 type AttributeDefinition<T> = {
+  /** The JSON:API attribute name. */
+  name?: string;
+
   type?: typeof Date;
 
   /** The default value for this property. */
@@ -31,6 +34,9 @@ type RelationshipsDefinition<DocType> = {
 }
 
 type RelationshipDefinition<T> = {
+  /** The JSON:API relationship name. */
+  name?: string;
+
   /** The default value for this property. */
   default?: T | (() => T);
 
