@@ -34,6 +34,12 @@ type RelationshipsDefinition<DocType> = {
 }
 
 type RelationshipDefinition<T> = {
+  /** 
+   * The JSON:API relationship type.
+   * Only used to find the JSON:API relationship `name` when calling `.include()`.
+   */
+  type?: string | string[];
+
   /** The JSON:API relationship name. */
   name?: string;
 
