@@ -192,8 +192,10 @@ BaseModel.fromJsonApi = function (body) {
     }
 
     // Attributes
-    for (let [attribute, value] of Object.entries(body.data.attributes ?? {})) {
-      const property = schema.attributes[attribute];
+    for (let [name, value] of Object.entries(body.data.attributes ?? {})) {
+      const [attribute, property] = Object.entries(schema.attributes)
+        .find(([_, property]) => property?.name === name)
+        ?? [name, schema.attributes[name]];
 
       if (property?.type === Date && value) {
         value = new Date(value);
@@ -203,7 +205,11 @@ BaseModel.fromJsonApi = function (body) {
     }
 
     // Relationships
-    for (const [relationship, value] of Object.entries(body.data.relationships ?? {})) {
+    for (const [name, value] of Object.entries(body.data.relationships ?? {})) {
+      const [relationship, property] = Object.entries(schema.relationships)
+        .find(([_, property]) => property?.name === name)
+        ?? [name, schema.relationships[name]];
+
       if (Array.isArray(value.data)) {
         const related = value.data.map((identifier) => {
           const model = models[identifier.type];
@@ -473,7 +479,9 @@ BaseModel.prototype.toJsonApi = function () {
       }
     }
 
-    data.attributes![attribute] = value;
+    const name = property?.name ?? attribute;
+
+    data.attributes![name] = value;
   }
 
   for (const [relationship, property] of Object.entries(this.schema.relationships)) {
@@ -481,16 +489,18 @@ BaseModel.prototype.toJsonApi = function () {
 
     const value = this.get(relationship) as ModelInstance<Record<string, any>> | ModelInstance<Record<string, any>>[] | null;
 
+    const name = property?.name ?? relationship;
+
     if (Array.isArray(value)) {
-      data.relationships![relationship] = {
+      data.relationships![name] = {
         data: value.map((val) => val.identifier()),
       };
     } else if (value) {
-      data.relationships![relationship] = {
+      data.relationships![name] = {
         data: value.identifier(),
       };
     } else {
-      data.relationships![relationship] = {
+      data.relationships![name] = {
         data: null,
       };
     }
