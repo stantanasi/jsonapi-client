@@ -11,6 +11,7 @@ type AttributeDefinition<T> = {
   /** The JSON:API attribute name. */
   name?: string;
 
+  /** The property value type which it will be cast */
   type?: typeof Date;
 
   /** The default value for this property. */
