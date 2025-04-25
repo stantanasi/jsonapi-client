@@ -285,9 +285,12 @@ Query.prototype.exec = async function exec() {
     }
 
     return this.model.fromJsonApi(response.data);
-  } else if (options.op === 'findRelationship') {
+  } else if (options.op === 'findRelationship' && options.related) {
+    const property = this.model.schema.relationships[options.related];
+    const relationship = property?.name ?? options.related;
+
     const response = await client.client.get<JsonApiBody<JsonApiResource | null>>(
-      `/${this.model.type}/${options.id}/${options.related}`,
+      `/${this.model.type}/${options.id}/${relationship}`,
       {
         params: this.buildParams(),
       }
