@@ -431,6 +431,19 @@ BaseModel.prototype.set = function (path, value, options) {
     } else if (schema.relationships[path]) {
       const property = schema.relationships[path];
 
+      if (value && !(value instanceof Model) && value.type && models[value.type]) {
+        const model = models[value.type];
+        value = new model(value);
+      } else if (Array.isArray(value) && value.some((val) => !(val instanceof Model))) {
+        value = value.map((val) => {
+          if (val && !(val instanceof Model) && val.type && models[val.type]) {
+            const model = models[val.type];
+            return new model(val);
+          }
+          return val;
+        });
+      }
+
       if (property?.set) {
         value = property.set(value);
       }
