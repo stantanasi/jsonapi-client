@@ -493,11 +493,17 @@ BaseModel.prototype.toJsonApi = function () {
 
     if (Array.isArray(value)) {
       data.relationships![name] = {
-        data: value.map((val) => val.identifier()),
+        data: value.map((val) => ({
+          type: val.type,
+          id: val.id,
+        })),
       };
     } else if (value) {
       data.relationships![name] = {
-        data: value.identifier(),
+        data: {
+          type: value.type,
+          id: value.id,
+        },
       };
     } else {
       data.relationships![name] = {
