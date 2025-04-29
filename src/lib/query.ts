@@ -23,7 +23,7 @@ type GraphitiComparator = {
   Prefix: "prefix",
   Suffix: "suffix",
 };
-type GraphitiComparisonOperators = GraphitiComparator["CaseSensitiveEqual"] | GraphitiComparator["CaseInsensitiveEqual"] | GraphitiComparator["GreaterThan"] | GraphitiComparator["GreaterThanOrEqual"] | GraphitiComparator["LessThan"] | GraphitiComparator["LessThanOrEqual"] | GraphitiComparator["Match"] | GraphitiComparator["Prefix"] | GraphitiComparator["Suffix"];
+type GraphitiComparisonOperators = GraphitiComparator[keyof GraphitiComparator];
 type Comparator<DocType, K extends keyof DocType> = Record<GraphitiComparisonOperators, DocType[K] | DocType[K][]>;
 
 export type FilterQuery<DocType> = {
