@@ -12,8 +12,22 @@ type ExtractDocType<T> =
   T extends Model<infer DocType>[] ? DocType :
   never;
 
+type GraphitiComparator = {
+  CaseSensitiveEqual: "eql",
+  CaseInsensitiveEqual: "eq",
+  GreaterThan: "gt",
+  GreaterThanOrEqual: "gte",
+  LessThan: "lt",
+  LessThanOrEqual: "lte",
+  Match: "match", // fuzzy/search
+  Prefix: "prefix",
+  Suffix: "suffix",
+};
+type GraphitiComparisonOperators = GraphitiComparator[keyof GraphitiComparator];
+type Comparator<DocType, K extends keyof DocType> = Record<GraphitiComparisonOperators, DocType[K] | DocType[K][]>;
+
 export type FilterQuery<DocType> = {
-  [P in keyof DocType]?: DocType[P];
+  [P in keyof DocType]?: DocType[P] | Partial<Comparator<DocType, P>>;
 } & {
   [key: string]: any;
 };
