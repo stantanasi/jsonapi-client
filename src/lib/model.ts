@@ -302,7 +302,9 @@ BaseModel.prototype.init = function (obj, options) {
 
   if (obj) {
     for (const [key, value] of Object.entries(obj)) {
-      if (key === 'id') {
+      if (key === 'type') {
+        this.type = value;
+      } else if (key === 'id') {
         this.id = value;
       } else {
         this.set(key, value, { skipMarkModified: true });
@@ -313,7 +315,11 @@ BaseModel.prototype.init = function (obj, options) {
 
 BaseModel.prototype.assign = function (obj) {
   for (const [key, value] of Object.entries(obj)) {
-    if (key === 'id') {
+    if (key === 'type') {
+      if (this.type !== value) {
+        this.type = value;
+      }
+    } else if (key === 'id') {
       if (this.id !== value) {
         this.id = value;
       }
