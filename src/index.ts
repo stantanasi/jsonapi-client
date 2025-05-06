@@ -13,10 +13,12 @@ export {
 } from './lib/model'
 
 export {
+  ExtractDocType,
   FieldsQuery,
   FilterQuery,
   IncludeQuery,
   default as Query,
+  RawResultType,
   SortQuery
 } from './lib/query'
 

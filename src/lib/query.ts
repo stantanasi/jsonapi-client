@@ -2,12 +2,12 @@ import { JsonApiBody, JsonApiQueryParams, JsonApiResource } from "../types/jsona
 import { fromJsonApi, Model, ModelConstructor, ModelInstance, models } from "./model";
 import Schema from "./schema";
 
-type RawResultType<T> = {
+export type RawResultType<T> = {
   result: T;
   body: JsonApiBody<T extends ModelInstance<unknown>[] ? JsonApiResource[] : JsonApiResource>;
 }
 
-type ExtractDocType<T> =
+export type ExtractDocType<T> =
   T extends Model<infer DocType> ? DocType :
   T extends Model<infer DocType>[] ? DocType :
   never;
