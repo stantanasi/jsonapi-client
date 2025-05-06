@@ -59,6 +59,7 @@ interface QueryOptions<DocType> {
   limit?: number;
   offset?: number;
   raw?: boolean;
+  queryParams?: Record<string, any>;
 }
 
 
@@ -122,6 +123,10 @@ class Query<ResultType, DocType> {
   ) => this;
 
   options!: QueryOptions<DocType>;
+
+  queryParams!: (
+    params: Record<string, any>,
+  ) => this;
 
   raw!: () => this extends Query<infer ResultType, infer ResultDocType>
     ? ResultType extends RawResultType<any> ? this : Query<RawResultType<ResultType>, ResultDocType>
@@ -255,6 +260,7 @@ Query.prototype.buildParams = function () {
       limit: options.limit,
       offset: options.offset,
     },
+    ...options.queryParams,
   };
 };
 
@@ -388,6 +394,13 @@ Query.prototype.limit = function (limit) {
 Query.prototype.offset = function (offset) {
   this.setOptions({
     offset: offset,
+  });
+  return this;
+};
+
+Query.prototype.queryParams = function (params) {
+  this.setOptions({
+    queryParams: params,
   });
   return this;
 };
