@@ -85,14 +85,14 @@ class Query<ResultType, DocType> {
 
   finally!: Promise<ResultType>['finally'];
 
-  find!: (
+  find!: <ModelType extends ModelConstructor<DocType>> (
     filter?: FilterQuery<DocType>,
-  ) => Query<ModelInstance<DocType>[], DocType>;
+  ) => Query<InstanceType<ModelType>[], DocType>;
 
-  findById!: (
+  findById!: <ModelType extends ModelConstructor<DocType>> (
     id: string,
     filter?: FilterQuery<DocType>,
-  ) => Query<ModelInstance<DocType>, DocType>;
+  ) => Query<InstanceType<ModelType>, DocType>;
 
   getOptions!: () => QueryOptions<DocType>;
 

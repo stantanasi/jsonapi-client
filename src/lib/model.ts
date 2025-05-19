@@ -56,14 +56,16 @@ export type ModelConstructor<DocType> = {
 
   schema: Schema<DocType>;
 
-  find: (
+  find: <ModelType extends ModelConstructor<DocType>> (
+    this: ModelType,
     filter?: FilterQuery<DocType>,
-  ) => Query<ModelInstance<DocType>[], DocType>;
+  ) => Query<InstanceType<ModelType>[], DocType>;
 
-  findById: (
+  findById: <ModelType extends ModelConstructor<DocType>> (
+    this: ModelType,
     id: string,
     filter?: FilterQuery<DocType>,
-  ) => Query<ModelInstance<DocType>, DocType>;
+  ) => Query<InstanceType<ModelType>, DocType>;
 
   fromJsonApi: <
     DataType extends JsonApiResource | JsonApiResource[] | null = JsonApiResource | JsonApiResource[] | null,
