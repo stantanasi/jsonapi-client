@@ -413,7 +413,9 @@ BaseModel.prototype.save = async function () {
   const doc = this.model().fromJsonApi(body);
 
   if (doc) {
-    this.assign(doc.toObject());
+    const obj = doc.toObject();
+    Object.keys(obj).forEach((key) => obj[key] === undefined && delete obj[key]);
+    this.assign(obj);
 
     this.isNew = false;
     this['_modifiedPath'] = [];
