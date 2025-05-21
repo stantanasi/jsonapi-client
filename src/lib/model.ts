@@ -123,6 +123,8 @@ export class Model<DocType> {
     },
   ) => void;
 
+  isDeleted!: boolean;
+
   isModified!: <T extends keyof DocType>(path?: T) => boolean;
 
   isNew!: boolean;
@@ -259,6 +261,7 @@ BaseModel.prototype.init = function (obj, options) {
   this['_modifiedPath'] = [];
 
   this.isNew = options?.isNew ?? true;
+  this.isDeleted = false;
 
   const schema = this.schema;
 
@@ -341,6 +344,7 @@ BaseModel.prototype.copy = function (obj) {
   doc['_doc'] = { ...this['_doc'] };
   doc['_modifiedPath'] = [...this['_modifiedPath']];
   doc.isNew = this.isNew;
+  doc.isDeleted = this.isDeleted;
 
   doc.id = this.id;
   if (obj) doc.assign(obj);
@@ -353,6 +357,8 @@ BaseModel.prototype.delete = async function () {
     `/${this.type}/${this.id}`,
     this.toJsonApi(),
   );
+
+  this.isDeleted = true;
 };
 
 BaseModel.prototype.get = function (path, options) {
